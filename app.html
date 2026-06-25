@@ -448,6 +448,7 @@ function Login({onLogin}){
   const[err,setErr]=useState('');
   const[msg,setMsg]=useState('');
   const[loading,setLoading]=useState(false);
+  const[aceptaTerminos,setAceptaTerminos]=useState(false);
   const isSupervisorRole=role==='Supervisor'||role==='Subcontrato';
 
   const handleLogin=async()=>{
@@ -465,6 +466,7 @@ function Login({onLogin}){
   const handleSignup=async()=>{
     if(!nombre||!email||!pw){setErr('Completa todos los campos obligatorios');return;}
     if(pw.length<6){setErr('La contraseña debe tener al menos 6 caracteres');return;}
+    if(!aceptaTerminos){setErr('Debes aceptar los Términos y la Política de Privacidad para continuar');return;}
     setErr('');setMsg('');setLoading(true);
     try{
       const meta={nombre:nombre.trim(),role,responsable_key:isSupervisorRole&&respKey?respKey:null};
@@ -546,9 +548,23 @@ function Login({onLogin}){
             RESP_ORDER.map(function(r){return h('option',{key:r,value:r},RESP_LABEL[r]||r);})
           )
         ),
+        h('div',{style:{display:'flex',alignItems:'flex-start',gap:8,margin:'4px 0'}},
+          h('input',{type:'checkbox',id:'chk-terminos',checked:aceptaTerminos,
+            onChange:function(e){setAceptaTerminos(e.target.checked);},
+            style:{marginTop:3,flexShrink:0,accentColor:'var(--blue)',cursor:'pointer'}}),
+          h('label',{htmlFor:'chk-terminos',style:{fontSize:11,color:'var(--text2)',lineHeight:1.6,cursor:'pointer'}},
+            'Acepto los ',
+            h('a',{href:'https://sistema-de-obra-plum.vercel.app/terminos',target:'_blank',
+              style:{color:'var(--blue)'}},'Términos y Condiciones'),
+            ' y la ',
+            h('a',{href:'https://sistema-de-obra-plum.vercel.app/privacidad',target:'_blank',
+              style:{color:'var(--blue)'}},'Política de Privacidad'),
+            '. Consentimiento requerido por Ley N° 21.719.'
+          )
+        ),
         err&&h('div',{className:'err-msg'},err),
-        h('button',{className:'btn-primary',onClick:handleSignup,disabled:loading,
-          style:{opacity:loading?.6:1}},loading?'Creando cuenta...':'Crear cuenta')
+        h('button',{className:'btn-primary',onClick:handleSignup,disabled:loading||!aceptaTerminos,
+          style:{opacity:(loading||!aceptaTerminos)?.6:1}},loading?'Creando cuenta...':'Crear cuenta')
       )
     )
   );
