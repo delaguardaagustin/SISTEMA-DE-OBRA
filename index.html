@@ -17292,10 +17292,12 @@ function App({initialData}){
         h('div',{style:{fontSize:17,fontWeight:700,letterSpacing:'.12em',color:'var(--blue)'}},'✦ OBRA'),
         !isLegacy&&obraInfo&&typeof obraInfo==='object'&&h('button',{
           onClick:function(){setShowObraSelector(true);},
-          style:{padding:'2px 8px',borderRadius:6,cursor:'pointer',fontSize:11,fontWeight:700,
+          title:obrasLista.length>1?'Cambiar obra':'Obra activa',
+          style:{display:'flex',alignItems:'center',gap:4,padding:'3px 8px',borderRadius:6,cursor:'pointer',fontSize:11,fontWeight:700,
             background:'var(--bg3)',border:'1px solid var(--border)',color:'var(--text2)',
-            maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},
-          obraInfo.nombre),
+            maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},
+          h('span',{style:{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},obraInfo.nombre),
+          obrasLista.length>1&&h('span',{style:{flexShrink:0,opacity:.7}},'▾')),
         h('div',{style:{position:'relative',display:'flex',alignItems:'center'}},
         h('span',{
           title:syncSt==='synced'?'Sincronizado':syncSt==='uploading'?'Subiendo datos...':(syncErr||'Error de conexión'),
@@ -17455,6 +17457,11 @@ function App({initialData}){
                 setPisosData(null);setUnidadesData(null);
                 setFasesData(null);setPartidasData(null);setAvancesData(null);
                 setCronogramaConfig(null);setCronogramaUnidades(null);
+                setMatItems(null);setMatStock(null);
+                setBodegaItems(null);setBodegaMovs(null);setBodegaVales(null);setBodegaValeItems(null);
+                setPersonalData(null);setAsistDias(null);
+                setPlanTareas(null);
+                setCubFilas(null);setCubMeds(null);setCubAvance(null);
               }
               setShowObraSelector(false);
             },
