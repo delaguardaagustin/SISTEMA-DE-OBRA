@@ -560,6 +560,7 @@ function OnboardingEmpresa({auth,onEmpresaCreada}){
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState('');
   const[creada,setCreada]=useState(null); // null | {id,nombre}
+  const[showForm,setShowForm]=useState(false);
 
   const crear=async function(){
     if(!nombreUsuario.trim()){setErr('Ingresa tu nombre');return;}
@@ -601,25 +602,52 @@ function OnboardingEmpresa({auth,onEmpresaCreada}){
   return h('div',{className:'login'},
     h('div',{style:card},
       h('div',{style:{fontSize:22,fontWeight:700,color:'var(--text)',marginBottom:2}},
-        'Bienvenido, '+auth.name),
-      h('div',{style:{fontSize:13,color:'var(--text2)',lineHeight:1.6}},
-        'Para comenzar, crea tu empresa constructora.'),
-      h('div',null,
-        h('label',{style:lbl},'Tu nombre'),
-        h('input',{style:inp,value:nombreUsuario,placeholder:'Ej: Juan Pérez',autoFocus:true,
-          onChange:function(e){setNombreUsuario(e.target.value);},
-          onKeyDown:function(e){if(e.key==='Enter')crear();}})
+        'Bienvenido'+(auth.name?', '+auth.name:'')),
+
+      !showForm&&h('div',null,
+        h('div',{style:{fontSize:38,textAlign:'center',margin:'12px 0'}},'⏳'),
+        h('div',{style:{fontSize:14,fontWeight:700,color:'var(--text)',textAlign:'center',marginBottom:6}},
+          'Esperando asignación'),
+        h('div',{style:{fontSize:12,color:'var(--text2)',lineHeight:1.7,textAlign:'center',marginBottom:20}},
+          'El administrador del sistema te asignará a una obra. Una vez asignado, recarga la página para ingresar.'),
+        h('button',{
+          onClick:function(){window.location.reload();},
+          className:'btn-primary',style:{marginBottom:8}},
+          '🔄 Recargar'),
+        h('div',{style:{borderTop:'1px solid var(--border)',paddingTop:14,marginTop:6,textAlign:'center'}},
+          h('button',{
+            onClick:function(){setShowForm(true);},
+            style:{background:'none',border:'none',color:'var(--text3)',fontSize:11,cursor:'pointer',textDecoration:'underline'}},
+            '¿Eres dueño de una empresa? Crear empresa propia')
+        )
       ),
-      h('div',null,
-        h('label',{style:lbl},'Nombre de la empresa'),
-        h('input',{style:inp,value:nombre,placeholder:'Ej: Constructora XYZ SpA',
-          onChange:function(e){setNombre(e.target.value);},
-          onKeyDown:function(e){if(e.key==='Enter')crear();}})
-      ),
-      err&&h('div',{className:'err-msg'},err),
-      h('button',{className:'btn-primary',onClick:crear,disabled:loading,
-        style:{opacity:loading?.6:1}},
-        loading?'Creando...':'Crear empresa')
+
+      showForm&&h('div',null,
+        h('div',{style:{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:12}},
+          'Crea tu empresa constructora para comenzar.'),
+        h('div',null,
+          h('label',{style:lbl},'Tu nombre'),
+          h('input',{style:inp,value:nombreUsuario,placeholder:'Ej: Juan Pérez',autoFocus:true,
+            onChange:function(e){setNombreUsuario(e.target.value);},
+            onKeyDown:function(e){if(e.key==='Enter')crear();}})
+        ),
+        h('div',null,
+          h('label',{style:lbl},'Nombre de la empresa'),
+          h('input',{style:inp,value:nombre,placeholder:'Ej: Constructora XYZ SpA',
+            onChange:function(e){setNombre(e.target.value);},
+            onKeyDown:function(e){if(e.key==='Enter')crear();}})
+        ),
+        err&&h('div',{className:'err-msg'},err),
+        h('div',{style:{display:'flex',gap:8,marginTop:4}},
+          h('button',{onClick:function(){setShowForm(false);},
+            style:{flex:1,padding:'10px',borderRadius:8,cursor:'pointer',fontSize:13,
+              background:'var(--bg3)',border:'1px solid var(--border)',color:'var(--text2)',fontWeight:600}},
+            'Volver'),
+          h('button',{className:'btn-primary',onClick:crear,disabled:loading,
+            style:{flex:2,opacity:loading?.6:1}},
+            loading?'Creando...':'Crear empresa')
+        )
+      )
     )
   );
 }
