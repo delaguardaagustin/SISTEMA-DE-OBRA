@@ -2230,6 +2230,307 @@ function CubicoViewSB({cubFilas,cubMeds,cubAvance,partidasData,fasesData,unidade
   );
 }
 
+// ── ADMIN VIEW SUPABASE ─────────────────────────────────────
+var ROLES_OBRA=['admin','jefe_obra','supervisor','subcontrato','bodeguero','visualizador'];
+
+function AdminViewSB({auth,onSalir}){
+  var[tab,setTab]=useState('empresas');
+  var[empresas,setEmpresas]=useState([]);
+  var[obras,setObras]=useState([]);
+  var[profiles,setProfiles]=useState([]);
+  var[miembros,setMiembros]=useState([]);
+  var[loading,setLoading]=useState(true);
+  var[toast,setToastMsg]=useState(null);
+  // Modals
+  var[showEmpModal,setShowEmpModal]=useState(false);
+  var[showObraModal,setShowObraModal]=useState(false);
+  var[showMiembroModal,setShowMiembroModal]=useState(false);
+  var[empForm,setEmpForm]=useState({nombre:''});
+  var[obraForm,setObraForm]=useState({nombre:'',empresa_id:'',tipo:'edificio'});
+  var[miembroForm,setMiembroForm]=useState({obra_id:'',email:'',rol:'jefe_obra'});
+  var[saving,setSaving]=useState(false);
+
+  function showToast(msg){setToastMsg(msg);setTimeout(function(){setToastMsg(null);},3000);}
+
+  function loadAll(){
+    setLoading(true);
+    Promise.all([
+      _supabase.from('empresas').select('id,nombre,created_at').order('created_at',{ascending:false}),
+      _supabase.from('obras').select('id,nombre,tipo,empresa_id,created_at').order('created_at',{ascending:false}),
+      _supabase.from('profiles').select('id,email,nombre,es_admin').order('email'),
+      _supabase.from('equipo_miembros').select('id,obra_id,profile_id,rol')
+    ]).then(function(results){
+      setEmpresas(results[0].data||[]);
+      setObras(results[1].data||[]);
+      setProfiles(results[2].data||[]);
+      setMiembros(results[3].data||[]);
+      setLoading(false);
+    });
+  }
+  React.useEffect(function(){loadAll();},[]);
+
+  async function crearEmpresa(){
+    if(!empForm.nombre.trim()){showToast('Ingresa un nombre');return;}
+    setSaving(true);
+    var id=crypto.randomUUID();
+    var r=await _supabase.from('empresas').insert([{id,nombre:empForm.nombre.trim()}]);
+    if(r.error){showToast('Error: '+r.error.message);setSaving(false);return;}
+    setEmpresas(function(p){return [{id,nombre:empForm.nombre.trim(),created_at:new Date().toISOString()}].concat(p);});
+    setShowEmpModal(false);setEmpForm({nombre:''});setSaving(false);
+    showToast('Empresa creada');
+  }
+
+  async function crearObra(){
+    if(!obraForm.nombre.trim()||!obraForm.empresa_id){showToast('Completa todos los campos');return;}
+    setSaving(true);
+    var id=crypto.randomUUID();
+    var r=await _supabase.from('obras').insert([{id,nombre:obraForm.nombre.trim(),tipo:obraForm.tipo,empresa_id:obraForm.empresa_id}]);
+    if(r.error){showToast('Error: '+r.error.message);setSaving(false);return;}
+    setObras(function(p){return [{id,nombre:obraForm.nombre.trim(),tipo:obraForm.tipo,empresa_id:obraForm.empresa_id,created_at:new Date().toISOString()}].concat(p);});
+    setShowObraModal(false);setObraForm({nombre:'',empresa_id:'',tipo:'edificio'});setSaving(false);
+    showToast('Obra creada');
+  }
+
+  async function asignarMiembro(){
+    if(!miembroForm.obra_id||!miembroForm.email){showToast('Completa todos los campos');return;}
+    var profile=profiles.find(function(p){return p.email===miembroForm.email.trim();});
+    if(!profile){showToast('Usuario no encontrado: '+miembroForm.email);return;}
+    var existe=miembros.find(function(m){return m.obra_id===miembroForm.obra_id&&m.profile_id===profile.id;});
+    if(existe){showToast('Ya es miembro de esta obra');return;}
+    setSaving(true);
+    var id=crypto.randomUUID();
+    var obraObj=obras.find(function(o){return o.id===miembroForm.obra_id;});
+    var empId=obraObj?obraObj.empresa_id:null;
+    // También asegurar empresa_miembros
+    if(empId){
+      await _supabase.from('empresa_miembros').upsert([{id:crypto.randomUUID(),empresa_id:empId,profile_id:profile.id,rol:miembroForm.rol}],{onConflict:'empresa_id,profile_id',ignoreDuplicates:true});
+    }
+    var r=await _supabase.from('equipo_miembros').insert([{id,obra_id:miembroForm.obra_id,profile_id:profile.id,rol:miembroForm.rol}]);
+    if(r.error){showToast('Error: '+r.error.message);setSaving(false);return;}
+    setMiembros(function(p){return p.concat([{id,obra_id:miembroForm.obra_id,profile_id:profile.id,rol:miembroForm.rol}]);});
+    setShowMiembroModal(false);setMiembroForm({obra_id:'',email:'',rol:'jefe_obra'});setSaving(false);
+    showToast('Miembro asignado');
+  }
+
+  async function quitarMiembro(m){
+    var r=await _supabase.from('equipo_miembros').delete().eq('id',m.id);
+    if(r.error){showToast('Error: '+r.error.message);return;}
+    setMiembros(function(p){return p.filter(function(x){return x.id!==m.id;});});
+    showToast('Miembro eliminado');
+  }
+
+  var TABS=[{k:'empresas',l:'Empresas',n:empresas.length},{k:'obras',l:'Obras',n:obras.length},{k:'usuarios',l:'Usuarios',n:profiles.length}];
+
+  return h('div',{style:{minHeight:'100vh',background:'var(--bg)',color:'var(--text)',fontFamily:'var(--font)'}},
+    // Header
+    h('div',{style:{background:'var(--card)',borderBottom:'1px solid var(--border)',padding:'12px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}},
+      h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+        h('div',{style:{fontSize:16,fontWeight:800,letterSpacing:'.12em',color:'var(--accent)'}},'⚙ SISTEMA DE OBRA'),
+        h('span',{style:{fontSize:10,background:'rgba(99,102,241,.2)',color:'var(--accent)',borderRadius:6,padding:'2px 8px',fontWeight:700}},
+          'ADMIN PANEL')
+      ),
+      h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+        h('span',{style:{fontSize:11,color:'var(--text3)'}},'sistemadeobra@admin.com'),
+        h('button',{onClick:onSalir,
+          style:{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:8,padding:'6px 14px',cursor:'pointer',fontSize:12,color:'var(--text2)'}},
+          'Salir')
+      )
+    ),
+
+    // Tabs
+    h('div',{style:{display:'flex',gap:0,borderBottom:'1px solid var(--border)',background:'var(--card)',padding:'0 20px'}},
+      TABS.map(function(t){
+        return h('button',{key:t.k,onClick:function(){setTab(t.k);},
+          style:{padding:'12px 20px',border:'none',background:'transparent',cursor:'pointer',fontSize:13,fontWeight:tab===t.k?700:400,
+            color:tab===t.k?'var(--accent)':'var(--text2)',borderBottom:tab===t.k?'2px solid var(--accent)':'2px solid transparent'}},
+          t.l+' ('+t.n+')'
+        );
+      })
+    ),
+
+    h('div',{style:{padding:20,maxWidth:900,margin:'0 auto'}},
+      loading&&h('div',{style:{textAlign:'center',padding:40,color:'var(--text3)'}},'Cargando...'),
+
+      // ── EMPRESAS ──
+      !loading&&tab==='empresas'&&h('div',null,
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}},
+          h('div',{style:{fontSize:14,fontWeight:700}},'Empresas registradas'),
+          h('button',{onClick:function(){setShowEmpModal(true);},
+            style:{background:'var(--accent)',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontSize:13,fontWeight:700}},
+            '+ Nueva Empresa')
+        ),
+        empresas.length===0&&h('div',{style:{textAlign:'center',padding:30,color:'var(--text3)',fontSize:13}},'Sin empresas aún.'),
+        h('div',{className:'gap6'},
+          empresas.map(function(emp){
+            var empObras=obras.filter(function(o){return o.empresa_id===emp.id;});
+            return h('div',{key:emp.id,style:{background:'var(--card)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px'}},
+              h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between'}},
+                h('div',null,
+                  h('div',{style:{fontSize:14,fontWeight:700,color:'var(--text)'}},'🏢 '+emp.nombre),
+                  h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:2}},emp.id)
+                ),
+                h('span',{style:{fontSize:11,color:'var(--text3)'}},empObras.length+' obra'+(empObras.length!==1?'s':''))
+              ),
+              empObras.length>0&&h('div',{style:{marginTop:10,display:'flex',gap:6,flexWrap:'wrap'}},
+                empObras.map(function(o){
+                  return h('span',{key:o.id,style:{fontSize:10,background:'var(--bg3)',borderRadius:6,padding:'3px 8px',color:'var(--text2)'}},o.nombre);
+                })
+              )
+            );
+          })
+        )
+      ),
+
+      // ── OBRAS ──
+      !loading&&tab==='obras'&&h('div',null,
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}},
+          h('div',{style:{fontSize:14,fontWeight:700}},'Obras registradas'),
+          h('button',{onClick:function(){setShowObraModal(true);},
+            style:{background:'var(--accent)',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontSize:13,fontWeight:700}},
+            '+ Nueva Obra')
+        ),
+        obras.length===0&&h('div',{style:{textAlign:'center',padding:30,color:'var(--text3)',fontSize:13}},'Sin obras aún.'),
+        h('div',{className:'gap6'},
+          obras.map(function(obra){
+            var emp=empresas.find(function(e){return e.id===obra.empresa_id;})||{nombre:'—'};
+            var miemsObra=miembros.filter(function(m){return m.obra_id===obra.id;});
+            return h('div',{key:obra.id,style:{background:'var(--card)',border:'1px solid var(--border)',borderRadius:10,padding:'14px 16px'}},
+              h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}},
+                h('div',null,
+                  h('div',{style:{fontSize:14,fontWeight:700,color:'var(--text)'}},'🏗 '+obra.nombre),
+                  h('div',{style:{fontSize:11,color:'var(--text3)'}},emp.nombre+' · '+obra.tipo)
+                ),
+                h('button',{onClick:function(){setMiembroForm(function(f){return Object.assign({},f,{obra_id:obra.id});});setShowMiembroModal(true);},
+                  style:{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 10px',cursor:'pointer',fontSize:11,color:'var(--text2)'}},
+                  '+ Miembro')
+              ),
+              // Miembros
+              miemsObra.length>0&&h('div',{style:{display:'flex',gap:6,flexWrap:'wrap'}},
+                miemsObra.map(function(m){
+                  var prof=profiles.find(function(p){return p.id===m.profile_id;})||{email:'?'};
+                  return h('div',{key:m.id,style:{display:'flex',alignItems:'center',gap:4,background:'var(--bg3)',borderRadius:6,padding:'3px 8px'}},
+                    h('span',{style:{fontSize:10,color:'var(--text2)'}},(prof.nombre||prof.email)+' · '+m.rol),
+                    h('button',{onClick:function(){quitarMiembro(m);},
+                      style:{background:'transparent',border:'none',color:'var(--red)',cursor:'pointer',fontSize:10,padding:'0 2px'}},'✕')
+                  );
+                })
+              ),
+              miemsObra.length===0&&h('div',{style:{fontSize:11,color:'var(--text3)',fontStyle:'italic'}},'Sin miembros asignados')
+            );
+          })
+        )
+      ),
+
+      // ── USUARIOS ──
+      !loading&&tab==='usuarios'&&h('div',null,
+        h('div',{style:{fontSize:14,fontWeight:700,marginBottom:16}},'Usuarios registrados'),
+        profiles.length===0&&h('div',{style:{textAlign:'center',padding:30,color:'var(--text3)',fontSize:13}},'Sin usuarios.'),
+        h('div',{className:'gap6'},
+          profiles.map(function(prof){
+            var profMiembros=miembros.filter(function(m){return m.profile_id===prof.id;});
+            var profObras=profMiembros.map(function(m){return obras.find(function(o){return o.id===m.obra_id;})||{nombre:'?'};});
+            return h('div',{key:prof.id,style:{background:'var(--card)',border:'1px solid var(--border)',borderRadius:10,padding:'12px 16px',
+              display:'flex',alignItems:'center',gap:12}},
+              h('div',{style:{width:36,height:36,borderRadius:'50%',background:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',
+                fontSize:14,fontWeight:700,color:'#fff',flexShrink:0}},
+                (prof.nombre||prof.email||'?')[0].toUpperCase()),
+              h('div',{style:{flex:1,minWidth:0}},
+                h('div',{style:{fontSize:13,fontWeight:700,color:'var(--text)'}},(prof.nombre||prof.email)),
+                h('div',{style:{fontSize:11,color:'var(--text3)'}},(prof.nombre?prof.email:'')),
+                profObras.length>0&&h('div',{style:{fontSize:10,color:'var(--accent)',marginTop:2}},
+                  'Obras: '+profObras.map(function(o){return o.nombre;}).join(', '))
+              ),
+              prof.es_admin&&h('span',{style:{fontSize:10,background:'rgba(99,102,241,.2)',color:'var(--accent)',borderRadius:6,padding:'2px 8px',fontWeight:700}},'ADMIN')
+            );
+          })
+        )
+      )
+    ),
+
+    // ── Modal Nueva Empresa ──
+    showEmpModal&&h('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,.6)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:20}},
+      h('div',{style:{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:12,padding:24,width:'100%',maxWidth:380}},
+        h('div',{style:{fontSize:15,fontWeight:700,marginBottom:16}},'Nueva Empresa'),
+        h('label',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,display:'block',marginBottom:4}},'NOMBRE'),
+        h('input',{value:empForm.nombre,onChange:function(e){setEmpForm({nombre:e.target.value});},
+          placeholder:'Nombre de la empresa',autoFocus:true,
+          style:{width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg3)',color:'var(--text)',fontSize:13,boxSizing:'border-box',marginBottom:16}}),
+        h('div',{style:{display:'flex',gap:8,justifyContent:'flex-end'}},
+          h('button',{onClick:function(){setShowEmpModal(false);},
+            style:{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontSize:13,color:'var(--text2)'}},'Cancelar'),
+          h('button',{onClick:crearEmpresa,disabled:saving,
+            style:{background:'var(--accent)',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',cursor:saving?'not-allowed':'pointer',fontSize:13,fontWeight:700,opacity:saving?.6:1}},
+            saving?'Creando...':'Crear')
+        )
+      )
+    ),
+
+    // ── Modal Nueva Obra ──
+    showObraModal&&h('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,.6)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:20}},
+      h('div',{style:{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:12,padding:24,width:'100%',maxWidth:380}},
+        h('div',{style:{fontSize:15,fontWeight:700,marginBottom:16}},'Nueva Obra'),
+        h('label',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,display:'block',marginBottom:4}},'EMPRESA'),
+        h('select',{value:obraForm.empresa_id,onChange:function(e){setObraForm(function(f){return Object.assign({},f,{empresa_id:e.target.value});});},
+          style:{width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg3)',color:'var(--text)',fontSize:13,marginBottom:10}},
+          h('option',{value:''},'-- Seleccionar --'),
+          empresas.map(function(e){return h('option',{key:e.id,value:e.id},e.nombre);})
+        ),
+        h('label',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,display:'block',marginBottom:4}},'NOMBRE DE LA OBRA'),
+        h('input',{value:obraForm.nombre,onChange:function(e){setObraForm(function(f){return Object.assign({},f,{nombre:e.target.value});});},
+          placeholder:'Ej: Torre Norte, Edificio Central...',
+          style:{width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg3)',color:'var(--text)',fontSize:13,boxSizing:'border-box',marginBottom:10}}),
+        h('label',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,display:'block',marginBottom:4}},'TIPO'),
+        h('select',{value:obraForm.tipo,onChange:function(e){setObraForm(function(f){return Object.assign({},f,{tipo:e.target.value});});},
+          style:{width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg3)',color:'var(--text)',fontSize:13,marginBottom:16}},
+          ['edificio','casa','oficina','industrial','otro'].map(function(t){return h('option',{key:t,value:t},t.charAt(0).toUpperCase()+t.slice(1));})
+        ),
+        h('div',{style:{display:'flex',gap:8,justifyContent:'flex-end'}},
+          h('button',{onClick:function(){setShowObraModal(false);},
+            style:{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontSize:13,color:'var(--text2)'}},'Cancelar'),
+          h('button',{onClick:crearObra,disabled:saving,
+            style:{background:'var(--accent)',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',cursor:saving?'not-allowed':'pointer',fontSize:13,fontWeight:700,opacity:saving?.6:1}},
+            saving?'Creando...':'Crear')
+        )
+      )
+    ),
+
+    // ── Modal Asignar Miembro ──
+    showMiembroModal&&h('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,.6)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:20}},
+      h('div',{style:{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:12,padding:24,width:'100%',maxWidth:380}},
+        h('div',{style:{fontSize:15,fontWeight:700,marginBottom:16}},'Asignar Miembro'),
+        h('label',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,display:'block',marginBottom:4}},'OBRA'),
+        h('select',{value:miembroForm.obra_id,onChange:function(e){setMiembroForm(function(f){return Object.assign({},f,{obra_id:e.target.value});});},
+          style:{width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg3)',color:'var(--text)',fontSize:13,marginBottom:10}},
+          h('option',{value:''},'-- Seleccionar --'),
+          obras.map(function(o){var emp=empresas.find(function(e){return e.id===o.empresa_id;})||{nombre:''};return h('option',{key:o.id,value:o.id},o.nombre+' ('+emp.nombre+')');})
+        ),
+        h('label',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,display:'block',marginBottom:4}},'EMAIL DEL USUARIO'),
+        h('input',{value:miembroForm.email,onChange:function(e){setMiembroForm(function(f){return Object.assign({},f,{email:e.target.value});});},
+          placeholder:'usuario@email.com',list:'profiles-list',
+          style:{width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg3)',color:'var(--text)',fontSize:13,boxSizing:'border-box',marginBottom:10}}),
+        h('datalist',{id:'profiles-list'},profiles.map(function(p){return h('option',{key:p.id,value:p.email});})),
+        h('label',{style:{fontSize:11,color:'var(--text3)',fontWeight:600,display:'block',marginBottom:4}},'ROL'),
+        h('select',{value:miembroForm.rol,onChange:function(e){setMiembroForm(function(f){return Object.assign({},f,{rol:e.target.value});});},
+          style:{width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg3)',color:'var(--text)',fontSize:13,marginBottom:16}},
+          ROLES_OBRA.map(function(r){return h('option',{key:r,value:r},r.replace('_',' '));})
+        ),
+        h('div',{style:{display:'flex',gap:8,justifyContent:'flex-end'}},
+          h('button',{onClick:function(){setShowMiembroModal(false);},
+            style:{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontSize:13,color:'var(--text2)'}},'Cancelar'),
+          h('button',{onClick:asignarMiembro,disabled:saving,
+            style:{background:'var(--accent)',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',cursor:saving?'not-allowed':'pointer',fontSize:13,fontWeight:700,opacity:saving?.6:1}},
+            saving?'Asignando...':'Asignar')
+        )
+      )
+    ),
+
+    // Toast
+    toast&&h('div',{style:{position:'fixed',bottom:24,left:'50%',transform:'translateX(-50%)',
+      background:'var(--card)',border:'1px solid var(--border)',borderRadius:10,padding:'10px 20px',
+      fontSize:13,color:'var(--text)',zIndex:2000,boxShadow:'0 4px 20px rgba(0,0,0,.4)'}},toast)
+  );
+}
+
 // ── PLAN MAESTRO VIEW SUPABASE ──────────────────────────────
 var PM_ESTADOS=['pendiente','en_curso','completado','bloqueado'];
 var PM_ESTADO_COLOR={pendiente:'#475569',en_curso:'#2563eb',completado:'#16a34a',bloqueado:'#dc2626'};
@@ -16486,17 +16787,22 @@ function App({initialData}){
   const progress=React.useMemo(function(){return calculateAllProgress(saves);},[saves]);
   // ── Empresa: verificar pertenencia tras login (hooks antes del early return) ──
   const[empresaInfo,setEmpresaInfo]=useState(null);
+  const[isAdmin,setIsAdmin]=useState(false);
   React.useEffect(function(){
-    if(!auth){setEmpresaInfo(null);return;}
-    if(!auth.supabaseId){setEmpresaInfo('legacy');return;} // login formato viejo: saltar verificación
+    if(!auth){setEmpresaInfo(null);setIsAdmin(false);return;}
+    if(!auth.supabaseId){setEmpresaInfo('legacy');return;}
     setEmpresaInfo('loading');
-    _supabase.from('empresa_miembros')
-      .select('id,rol,empresa_id,empresas(id,nombre)')
-      .eq('profile_id',auth.supabaseId)
-      .limit(1)
+    _supabase.from('profiles').select('es_admin').eq('id',auth.supabaseId).maybeSingle()
       .then(function(res){
-        var d=res.data;
-        setEmpresaInfo(d&&d.length>0?d[0]:false);
+        if(res.data&&res.data.es_admin){setIsAdmin(true);setEmpresaInfo(false);return;}
+        _supabase.from('empresa_miembros')
+          .select('id,rol,empresa_id,empresas(id,nombre)')
+          .eq('profile_id',auth.supabaseId)
+          .limit(1)
+          .then(function(res2){
+            var d=res2.data;
+            setEmpresaInfo(d&&d.length>0?d[0]:false);
+          });
       });
   },[auth?auth.supabaseId:null]);
   // ── Obras: cargar todas las obras de la empresa ──
@@ -16679,6 +16985,8 @@ function App({initialData}){
         animation:'spin .8s linear infinite'}}),
       'Verificando acceso...'
     );
+  if(isAdmin)
+    return h(AdminViewSB,{auth,onSalir:function(){save({auth:null});}});
   if(empresaInfo===false)
     return h(OnboardingEmpresa,{auth,onEmpresaCreada:function(emp){
       setEmpresaInfo({empresa_id:emp.id,empresas:{id:emp.id,nombre:emp.nombre},rol:'owner'});
