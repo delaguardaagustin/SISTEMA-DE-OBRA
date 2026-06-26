@@ -7,358 +7,332 @@
 <meta name="description" content="Controla tus obras de construcción desde cualquier lugar. Avances, personal, materiales, bodega y más. Todo en una sola plataforma.">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 *{margin:0;padding:0;box-sizing:border-box;}
-
 :root{
-  --bg:#04070f;
-  --glass:rgba(255,255,255,0.04);
-  --glass-border:rgba(255,255,255,0.08);
-  --glass-hover:rgba(255,255,255,0.08);
-  --text:#f0f6fc;
-  --text2:#8b9db5;
-  --text3:#4a5568;
-  --accent:#6c63ff;
-  --accent2:#a78bfa;
+  --bg:#080d18;
+  --bg2:#0d1526;
+  --card:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+  --text:#f1f5f9;
+  --text2:#94a3b8;
+  --text3:#475569;
+  --orange:#f97316;
+  --orange2:#fb923c;
+  --yellow:#fbbf24;
   --cyan:#22d3ee;
   --green:#10b981;
-  --red:#f87171;
-  --amber:#fbbf24;
-  --glow-purple:rgba(108,99,255,0.4);
-  --glow-cyan:rgba(34,211,238,0.3);
+  --blue:#3b82f6;
 }
-
 html{scroll-behavior:smooth;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;line-height:1.6;overflow-x:hidden;}
 
-/* ── MESH BACKGROUND ── */
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% -10%,rgba(108,99,255,0.15) 0%,transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 100%,rgba(34,211,238,0.1) 0%,transparent 60%),
-    radial-gradient(ellipse 40% 40% at 50% 50%,rgba(16,185,129,0.05) 0%,transparent 70%);
-  pointer-events:none;
-}
-body::after{
-  content:'';position:fixed;inset:0;z-index:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);
-  background-size:60px 60px;
-  pointer-events:none;
-}
-
-/* ── ANIMATIONS ── */
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes glow-pulse{0%,100%{opacity:.6}50%{opacity:1}}
-@keyframes gradient-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.3)}50%{box-shadow:0 0 40px rgba(249,115,22,.6)}}
+@keyframes gradient-x{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes fade-up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(400%)}}
+@keyframes fade-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes counter{from{opacity:0}to{opacity:1}}
 
 /* ── NAV ── */
 nav{
-  position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1000;
-  width:calc(100% - 40px);max-width:1100px;
-  background:rgba(4,7,15,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:1px solid var(--glass-border);border-radius:16px;
-  padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;
-  box-shadow:0 0 40px rgba(108,99,255,0.08),inset 0 1px 0 rgba(255,255,255,0.06);
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  background:rgba(8,13,24,0.9);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(249,115,22,0.15);
+  padding:0 5%;display:flex;align-items:center;justify-content:space-between;height:64px;
 }
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-.nav-logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--cyan));
-  border-radius:8px;display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:900;color:#fff;box-shadow:0 0 16px var(--glow-purple);}
-.nav-logo-text{font-size:14px;font-weight:800;letter-spacing:.1em;color:var(--text);}
-.nav-links{display:flex;align-items:center;gap:8px;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-brand-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--orange),var(--yellow));
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:0 0 20px rgba(249,115,22,.4);
+}
+.nav-brand-text{font-size:15px;font-weight:800;letter-spacing:.08em;color:var(--text);}
+.nav-brand-sub{font-size:9px;font-weight:600;letter-spacing:.15em;color:var(--orange);display:block;line-height:1;}
+.nav-links{display:flex;align-items:center;gap:4px;}
 .nav-links a{color:var(--text2);text-decoration:none;font-size:13px;font-weight:500;
-  padding:6px 14px;border-radius:8px;transition:all .2s;}
-.nav-links a:hover{color:var(--text);background:var(--glass);}
-.btn-nav{
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;border:none;border-radius:10px;
-  padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;
-  box-shadow:0 0 20px var(--glow-purple);transition:all .2s;
-  position:relative;overflow:hidden;
+  padding:7px 16px;border-radius:8px;transition:all .2s;}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.05);}
+.nav-cta{
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  color:#fff;border:none;border-radius:10px;padding:9px 22px;
+  font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;
+  box-shadow:0 0 24px rgba(249,115,22,.35);transition:all .2s;
 }
-.btn-nav::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--cyan),var(--accent));
-  opacity:0;transition:opacity .3s;}
-.btn-nav:hover::before{opacity:1;}
-.btn-nav span{position:relative;z-index:1;}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 0 36px rgba(249,115,22,.55);}
 
 /* ── HERO ── */
 .hero{
-  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:120px 5% 80px;position:relative;z-index:1;
+  min-height:100vh;position:relative;display:flex;align-items:center;
+  overflow:hidden;
 }
-.hero-eyebrow{
+.hero-bg{
+  position:absolute;inset:0;
+  background-image:url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1920&q=80');
+  background-size:cover;background-position:center 40%;
+  filter:brightness(.25) saturate(1.2);
+}
+.hero-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(8,13,24,.95) 0%,rgba(8,13,24,.5) 50%,rgba(8,13,24,.85) 100%);
+}
+.hero-overlay-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(249,115,22,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(249,115,22,.04) 1px,transparent 1px);
+  background-size:80px 80px;
+}
+.hero-glow{
+  position:absolute;top:-200px;left:-100px;
+  width:800px;height:800px;border-radius:50%;
+  background:radial-gradient(circle,rgba(249,115,22,.12) 0%,transparent 65%);
+  pointer-events:none;
+}
+.hero-content{
+  position:relative;z-index:1;padding:120px 5% 80px;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+  max-width:1200px;margin:0 auto;width:100%;
+}
+.hero-left{}
+.hero-tag{
   display:inline-flex;align-items:center;gap:8px;
-  background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.3);
-  border-radius:100px;padding:6px 16px;margin-bottom:32px;
-  font-size:12px;font-weight:600;color:var(--accent2);letter-spacing:.06em;
-  animation:fade-up .6s ease both;
+  background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);
+  border-radius:100px;padding:6px 16px;margin-bottom:28px;
+  font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--orange2);
+  animation:fade-up .5s ease both;
 }
-.hero-eyebrow-dot{width:6px;height:6px;background:var(--green);border-radius:50%;
-  box-shadow:0 0 8px var(--green);animation:glow-pulse 2s infinite;}
+.hero-tag-dot{width:7px;height:7px;background:var(--orange);border-radius:50%;animation:pulse-glow 2s infinite;}
 .hero h1{
-  font-size:clamp(40px,6vw,80px);font-weight:900;line-height:1.05;
-  letter-spacing:-.03em;margin-bottom:24px;
-  animation:fade-up .7s .1s ease both;
+  font-size:clamp(38px,4.5vw,64px);font-weight:900;line-height:1.05;
+  letter-spacing:-.025em;margin-bottom:20px;
+  animation:fade-up .5s .1s ease both;
 }
-.hero h1 .line1{color:var(--text);}
-.hero h1 .gradient-text{
-  background:linear-gradient(135deg,var(--accent),var(--cyan),var(--accent2));
-  background-size:200% 200%;
+.hero-accent{
+  background:linear-gradient(90deg,var(--orange),var(--yellow),var(--orange2));
+  background-size:200%;animation:gradient-x 3s ease infinite;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  animation:gradient-shift 4s ease infinite;
 }
-.hero-sub{
-  font-size:clamp(15px,2vw,18px);color:var(--text2);max-width:520px;
-  line-height:1.75;margin-bottom:44px;font-weight:400;
-  animation:fade-up .7s .2s ease both;
+.hero-desc{
+  font-size:17px;color:var(--text2);line-height:1.75;margin-bottom:36px;
+  max-width:480px;animation:fade-up .5s .2s ease both;
 }
-.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
-  animation:fade-up .7s .3s ease both;}
-.btn-primary{
-  position:relative;overflow:hidden;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
+.hero-btns{
+  display:flex;gap:12px;flex-wrap:wrap;
+  animation:fade-up .5s .3s ease both;
+}
+.btn-orange{
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
   color:#fff;border:none;border-radius:12px;
-  padding:14px 32px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;
-  box-shadow:0 0 30px var(--glow-purple),0 4px 20px rgba(0,0,0,.3);
-  transition:transform .2s,box-shadow .2s;display:inline-block;
+  padding:15px 32px;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;
+  box-shadow:0 0 32px rgba(249,115,22,.4),0 4px 20px rgba(0,0,0,.3);
+  transition:all .2s;display:inline-block;position:relative;overflow:hidden;
 }
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 50px var(--glow-purple),0 8px 30px rgba(0,0,0,.3);}
-.btn-primary::after{
-  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-  background:linear-gradient(135deg,transparent,rgba(255,255,255,0.1),transparent);
-  transform:rotate(45deg) translateX(-100%);transition:transform .5s;
-}
-.btn-primary:hover::after{transform:rotate(45deg) translateX(100%);}
-.btn-outline{
-  background:transparent;color:var(--text);
-  border:1px solid var(--glass-border);border-radius:12px;
-  padding:14px 32px;font-size:15px;font-weight:600;cursor:pointer;
+.btn-orange::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--yellow),var(--orange));opacity:0;transition:.3s;}
+.btn-orange:hover{transform:translateY(-2px);box-shadow:0 0 48px rgba(249,115,22,.55);}
+.btn-orange:hover::before{opacity:1;}
+.btn-orange span{position:relative;z-index:1;}
+.btn-ghost{
+  background:rgba(255,255,255,.05);color:var(--text);
+  border:1px solid rgba(255,255,255,.12);border-radius:12px;
+  padding:15px 32px;font-size:15px;font-weight:600;cursor:pointer;
   text-decoration:none;display:inline-block;
   backdrop-filter:blur(10px);transition:all .2s;
 }
-.btn-outline:hover{border-color:rgba(108,99,255,0.5);background:rgba(108,99,255,0.08);
-  box-shadow:0 0 20px rgba(108,99,255,0.15);}
+.btn-ghost:hover{border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.08);}
 
-/* ── HERO METRICS STRIP ── */
-.hero-metrics{
-  display:flex;gap:0;margin-top:60px;
-  background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);
-  border-radius:16px;overflow:hidden;animation:fade-up .7s .4s ease both;
-  backdrop-filter:blur(10px);
+/* ── HERO RIGHT — CRANE SVG ── */
+.hero-right{
+  display:flex;justify-content:center;align-items:center;
+  animation:fade-up .5s .4s ease both;
 }
-.hero-metric{padding:20px 32px;text-align:center;position:relative;}
-.hero-metric+.hero-metric::before{
+.hero-visual{
+  position:relative;width:100%;max-width:420px;
+  animation:float 5s ease-in-out infinite;
+}
+.hero-card-main{
+  background:rgba(13,21,38,.95);border:1px solid rgba(249,115,22,.25);
+  border-radius:20px;padding:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(249,115,22,.08);
+}
+.hero-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.hero-card-title{font-size:13px;font-weight:700;color:var(--text);}
+.hero-card-live{
+  display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;
+  color:var(--green);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);
+  border-radius:20px;padding:3px 10px;
+}
+.hero-card-live-dot{width:5px;height:5px;background:var(--green);border-radius:50%;}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.hero-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;padding:14px;}
+.hero-stat-val{font-size:24px;font-weight:900;margin-bottom:3px;}
+.hero-stat-label{font-size:10px;color:var(--text2);font-weight:500;}
+.hero-bar-row{margin-bottom:10px;}
+.hero-bar-label{display:flex;justify-content:space-between;font-size:10px;
+  color:var(--text2);margin-bottom:5px;}
+.hero-bar-track{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.hero-bar-fill{height:100%;border-radius:3px;}
+.hero-modules-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;}
+.hero-mod-tag{
+  font-size:9px;font-weight:700;letter-spacing:.06em;
+  background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);
+  color:var(--orange2);border-radius:6px;padding:3px 8px;
+}
+
+/* ── STATS BAND ── */
+.stats-band{
+  background:rgba(249,115,22,.06);border-top:1px solid rgba(249,115,22,.15);
+  border-bottom:1px solid rgba(249,115,22,.15);
+  padding:32px 5%;display:flex;justify-content:center;gap:0;flex-wrap:wrap;
+  position:relative;z-index:1;
+}
+.stat-item{text-align:center;padding:16px 48px;position:relative;}
+.stat-item+.stat-item::before{
   content:'';position:absolute;left:0;top:20%;height:60%;
-  width:1px;background:var(--glass-border);
+  width:1px;background:rgba(249,115,22,.15);
 }
-.hero-metric-val{font-size:26px;font-weight:800;color:var(--text);line-height:1;}
-.hero-metric-val span{background:linear-gradient(135deg,var(--accent),var(--cyan));
+.stat-num{font-size:36px;font-weight:900;
+  background:linear-gradient(135deg,var(--orange),var(--yellow));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.hero-metric-label{font-size:11px;color:var(--text2);margin-top:4px;font-weight:500;}
+.stat-label{font-size:12px;color:var(--text2);margin-top:4px;font-weight:500;}
 
-/* ── DASHBOARD PREVIEW ── */
-.preview-section{padding:0 5% 100px;position:relative;z-index:1;}
-.preview-wrap{
-  max-width:960px;margin:0 auto;
-  background:rgba(255,255,255,0.03);
-  border:1px solid var(--glass-border);border-radius:24px;overflow:hidden;
-  box-shadow:0 40px 120px rgba(0,0,0,.6),0 0 60px rgba(108,99,255,0.08);
-  animation:float 6s ease-in-out infinite;
-}
-.preview-topbar{
-  background:rgba(255,255,255,0.04);padding:12px 20px;
-  display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--glass-border);
-}
-.dot-red{width:11px;height:11px;border-radius:50%;background:#ff5f57;}
-.dot-yellow{width:11px;height:11px;border-radius:50%;background:#febc2e;}
-.dot-green{width:11px;height:11px;border-radius:50%;background:#28c840;}
-.preview-url-bar{
-  flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
-  border-radius:8px;padding:5px 12px;font-size:11px;color:var(--text3);
-  margin:0 12px;display:flex;align-items:center;gap:6px;
-}
-.preview-lock{color:var(--green);font-size:10px;}
-.preview-content{padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.prev-card{
-  background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
-  border-radius:14px;padding:16px;position:relative;overflow:hidden;
-}
-.prev-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(108,99,255,0.5),transparent);
-}
-.prev-card-tag{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--text2);
-  text-transform:uppercase;margin-bottom:8px;}
-.prev-card-num{font-size:28px;font-weight:900;color:var(--text);line-height:1;margin-bottom:4px;}
-.prev-card-sub{font-size:10px;color:var(--text2);}
-.prev-bar{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:10px;}
-.prev-bar-fill{height:100%;border-radius:2px;position:relative;overflow:hidden;}
-.prev-bar-fill::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);
-  animation:scan 2s linear infinite;
-}
-.scan-line{animation:scan 2s linear infinite;}
-/* scan handled by prev-bar-fill::after */
+/* ── SECTION ── */
+.section{padding:100px 5%;position:relative;}
+.section-bg-alt{background:rgba(255,255,255,.015);}
+.section-tag{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:12px;display:block;}
+.section-h{font-size:clamp(28px,3.5vw,44px);font-weight:900;letter-spacing:-.02em;margin-bottom:16px;}
+.section-p{font-size:16px;color:var(--text2);max-width:560px;margin:0 auto 64px;line-height:1.75;}
+.tc{text-align:center;}
 
-/* ── SECTION COMMON ── */
-.section{padding:100px 5%;position:relative;z-index:1;}
-.section-tag{
-  display:inline-block;font-size:11px;font-weight:700;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--accent2);margin-bottom:14px;
+/* ── FEATURE CARDS ── */
+.feats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
+.feat{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:20px;padding:30px;transition:all .3s;position:relative;overflow:hidden;
 }
-.section-tag::before{content:'// ';}
-.section-h{font-size:clamp(28px,4vw,48px);font-weight:900;letter-spacing:-.025em;margin-bottom:16px;}
-.section-p{font-size:16px;color:var(--text2);max-width:540px;margin:0 auto 64px;text-align:center;}
-.text-center{text-align:center;}
-
-/* ── FEATURES ── */
-.features-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
-.feat-card{
-  background:var(--glass);border:1px solid var(--glass-border);border-radius:20px;
-  padding:28px;position:relative;overflow:hidden;
-  transition:border-color .3s,transform .3s,box-shadow .3s;
-  backdrop-filter:blur(10px);
-}
-.feat-card:hover{
-  border-color:rgba(108,99,255,0.4);transform:translateY(-4px);
-  box-shadow:0 20px 60px rgba(0,0,0,.3),0 0 30px rgba(108,99,255,0.1);
-}
-.feat-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 0% 0%,rgba(108,99,255,0.06),transparent 60%);
-  opacity:0;transition:opacity .3s;
-}
-.feat-card:hover::before{opacity:1;}
-.feat-icon-wrap{
-  width:48px;height:48px;border-radius:14px;
-  background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.2);
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;margin-bottom:18px;
-}
-.feat-title{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--text);}
+.feat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--orange),transparent);
+  opacity:0;transition:.3s;}
+.feat:hover{border-color:rgba(249,115,22,.25);transform:translateY(-4px);
+  box-shadow:0 16px 48px rgba(0,0,0,.3),0 0 30px rgba(249,115,22,.06);}
+.feat:hover::before{opacity:1;}
+.feat-icon{font-size:32px;margin-bottom:16px;}
+.feat-title{font-size:16px;font-weight:700;margin-bottom:8px;}
 .feat-desc{font-size:13px;color:var(--text2);line-height:1.7;}
+.feat-accent{color:var(--orange);}
+
+/* ── OBRA PHOTOS GRID ── */
+.obras-section{padding:0 5% 100px;position:relative;}
+.obras-heading{text-align:center;margin-bottom:48px;}
+.obras-grid{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:240px 240px;gap:12px;max-width:1100px;margin:0 auto;}
+.obra-img{border-radius:16px;overflow:hidden;position:relative;}
+.obra-img img{width:100%;height:100%;object-fit:cover;filter:brightness(.7) saturate(1.1);transition:all .4s;}
+.obra-img:hover img{filter:brightness(.85) saturate(1.3);}
+.obra-img:first-child{grid-row:span 2;}
+.obra-img-label{
+  position:absolute;bottom:14px;left:14px;
+  background:rgba(8,13,24,.8);backdrop-filter:blur(8px);
+  border:1px solid rgba(249,115,22,.25);border-radius:8px;
+  padding:6px 12px;font-size:11px;font-weight:700;color:var(--text);
+}
+.obra-img-label span{color:var(--orange);}
 
 /* ── MODULES ── */
-.modules-section{padding:0 5% 100px;position:relative;z-index:1;}
-.modules-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
-  gap:10px;max-width:960px;margin:0 auto;
+.mods-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:12px;max-width:1100px;margin:0 auto;
 }
-.mod-chip{
-  background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;
-  padding:18px 10px;text-align:center;cursor:default;
-  transition:all .25s;position:relative;overflow:hidden;
+.mod{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;padding:20px 12px;text-align:center;transition:all .25s;cursor:default;
 }
-.mod-chip:hover{
-  border-color:rgba(34,211,238,0.4);
-  background:rgba(34,211,238,0.06);
-  box-shadow:0 0 20px rgba(34,211,238,0.1);
-  transform:scale(1.04);
-}
-.mod-chip .mod-icon{font-size:24px;margin-bottom:8px;}
-.mod-chip .mod-name{font-size:10px;font-weight:700;color:var(--text2);letter-spacing:.04em;}
+.mod:hover{border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.06);
+  box-shadow:0 8px 24px rgba(249,115,22,.1);transform:translateY(-3px);}
+.mod-icon{font-size:26px;margin-bottom:8px;}
+.mod-name{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.04em;}
+.mod:hover .mod-name{color:var(--orange2);}
 
 /* ── PRICING ── */
-.pricing-section{padding:0 5% 100px;position:relative;z-index:1;}
-.pricing-card-wrap{
-  max-width:480px;margin:0 auto;position:relative;
-}
-.pricing-glow{
-  position:absolute;inset:-2px;
-  background:linear-gradient(135deg,var(--accent),var(--cyan),var(--accent2),var(--accent));
-  background-size:300% 300%;
-  animation:gradient-shift 4s ease infinite;
-  border-radius:24px;z-index:0;filter:blur(1px);
+.pricing-wrap{max-width:520px;margin:0 auto;position:relative;}
+.pricing-border{
+  position:absolute;inset:-2px;border-radius:26px;
+  background:linear-gradient(135deg,var(--orange),var(--yellow),var(--orange2),var(--orange));
+  background-size:300%;animation:gradient-x 3s ease infinite;
+  filter:blur(1px);
 }
 .pricing-card{
-  position:relative;z-index:1;
-  background:#070b14;border-radius:22px;padding:44px 40px;
+  position:relative;z-index:1;background:#080d18;
+  border-radius:24px;padding:48px 44px;
 }
-.pricing-plan-badge{
+.pricing-badge{
   display:inline-flex;align-items:center;gap:6px;
-  background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);
-  border-radius:100px;padding:5px 14px;
-  font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--accent2);
-  margin-bottom:24px;
+  background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.25);
+  border-radius:100px;padding:5px 14px;margin-bottom:28px;
+  font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--orange2);
 }
-.pricing-plan-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);
-  box-shadow:0 0 8px var(--accent);}
-.pricing-price-wrap{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;}
-.pricing-price{font-size:52px;font-weight:900;letter-spacing:-.03em;
-  background:linear-gradient(135deg,var(--text),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.pricing-period{font-size:16px;color:var(--text2);font-weight:400;}
-.pricing-desc{font-size:14px;color:var(--text2);margin-bottom:32px;line-height:1.6;}
-.pricing-feats{list-style:none;margin-bottom:36px;display:flex;flex-direction:column;gap:12px;}
-.pricing-feats li{
-  display:flex;align-items:center;gap:10px;
-  font-size:14px;color:var(--text2);
-  padding-bottom:12px;border-bottom:1px solid var(--glass-border);
+.pricing-badge-dot{width:7px;height:7px;background:var(--orange);border-radius:50%;
+  box-shadow:0 0 10px var(--orange);}
+.pricing-amount{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
+.pricing-amount-val{
+  font-size:56px;font-weight:900;letter-spacing:-.03em;
+  background:linear-gradient(135deg,var(--text),var(--orange2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-.pricing-feats li:last-child{border-bottom:none;padding-bottom:0;}
-.feat-check{
-  width:20px;height:20px;border-radius:6px;flex-shrink:0;
-  background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;color:var(--green);
-}
-.pricing-note{font-size:12px;color:var(--text3);text-align:center;margin-top:12px;}
+.pricing-amount-per{font-size:16px;color:var(--text2);}
+.pricing-sub{font-size:14px;color:var(--text2);margin-bottom:36px;line-height:1.6;}
+.pricing-list{list-style:none;margin-bottom:40px;display:flex;flex-direction:column;gap:14px;}
+.pricing-list li{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--text2);
+  padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06);}
+.pricing-list li:last-child{border:none;padding:0;}
+.p-check{width:22px;height:22px;border-radius:7px;flex-shrink:0;
+  background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--green);}
+.pricing-note{font-size:12px;color:var(--text3);text-align:center;margin-top:14px;}
 
 /* ── CTA ── */
-.cta-section{padding:0 5% 120px;position:relative;z-index:1;}
+.cta{padding:0 5% 120px;}
 .cta-box{
-  max-width:800px;margin:0 auto;text-align:center;
-  background:rgba(108,99,255,0.06);
-  border:1px solid rgba(108,99,255,0.2);border-radius:28px;
-  padding:80px 48px;position:relative;overflow:hidden;
+  max-width:900px;margin:0 auto;border-radius:28px;overflow:hidden;position:relative;
 }
-.cta-box::before{
-  content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);
-  width:400px;height:400px;
-  background:radial-gradient(circle,rgba(108,99,255,0.15) 0%,transparent 70%);
-  pointer-events:none;
+.cta-photo{
+  position:absolute;inset:0;
+  background-image:url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1400&q=80');
+  background-size:cover;background-position:center;
+  filter:brightness(.3) saturate(1.2);
 }
-.cta-box h2{font-size:clamp(28px,4vw,52px);font-weight:900;letter-spacing:-.025em;margin-bottom:16px;}
-.cta-box p{font-size:16px;color:var(--text2);margin-bottom:40px;line-height:1.7;}
+.cta-photo::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(8,13,24,.85),rgba(249,115,22,.15));}
+.cta-content{position:relative;z-index:1;padding:80px 60px;text-align:center;}
+.cta-content h2{font-size:clamp(28px,4vw,48px);font-weight:900;letter-spacing:-.02em;margin-bottom:16px;}
+.cta-content p{font-size:16px;color:var(--text2);margin-bottom:40px;line-height:1.7;}
 .cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
 
 /* ── FOOTER ── */
 footer{
-  position:relative;z-index:1;
-  border-top:1px solid var(--glass-border);
-  padding:32px 5%;display:flex;align-items:center;
-  justify-content:space-between;flex-wrap:wrap;gap:16px;
+  border-top:1px solid rgba(255,255,255,.06);padding:40px 5%;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;
 }
-.footer-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
-.footer-logo-icon{width:22px;height:22px;background:linear-gradient(135deg,var(--accent),var(--cyan));
-  border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;}
-.footer-logo-text{font-size:13px;font-weight:700;color:var(--text2);}
-.footer-links{display:flex;gap:20px;}
+.footer-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.footer-brand-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--orange),var(--yellow));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.footer-brand-text{font-size:13px;font-weight:800;color:var(--text2);}
+.footer-links{display:flex;gap:24px;}
 .footer-links a{font-size:12px;color:var(--text3);text-decoration:none;transition:color .2s;}
-.footer-links a:hover{color:var(--text2);}
+.footer-links a:hover{color:var(--orange);}
 .footer-copy{font-size:12px;color:var(--text3);}
 
-/* ── DIVIDER ── */
-.divider{
-  max-width:1100px;margin:0 auto;height:1px;
-  background:linear-gradient(90deg,transparent,var(--glass-border),transparent);
-}
-
-@media(max-width:640px){
-  .nav-links a:not(.btn-nav){display:none;}
-  .hero-metrics{flex-wrap:wrap;}
-  .hero-metric+.hero-metric::before{display:none;}
-  .preview-content{grid-template-columns:repeat(2,1fr);}
-  .preview-content .prev-card:last-child{display:none;}
+@media(max-width:768px){
+  .hero-content{grid-template-columns:1fr;gap:40px;}
+  .hero-right{display:none;}
+  .obras-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto;}
+  .obra-img:first-child{grid-row:span 1;}
+  .stats-band{gap:0;}
+  .stat-item{padding:16px 24px;}
+  .nav-links a:not(.nav-cta){display:none;}
   .pricing-card{padding:32px 24px;}
-  .cta-box{padding:48px 24px;}
+  .cta-content{padding:48px 24px;}
   footer{flex-direction:column;text-align:center;}
   .footer-links{justify-content:center;}
 }
@@ -368,217 +342,251 @@ footer{
 
 <!-- NAV -->
 <nav>
-  <a href="/" class="nav-logo">
-    <div class="nav-logo-icon">✦</div>
-    <span class="nav-logo-text">SISTEMA DE OBRA</span>
+  <a href="/" class="nav-brand">
+    <div class="nav-brand-icon">🏗</div>
+    <div>
+      <span class="nav-brand-text">SISTEMA DE OBRA</span>
+      <span class="nav-brand-sub">GESTIÓN DE CONSTRUCCIÓN</span>
+    </div>
   </a>
   <div class="nav-links">
+    <a href="#features">Funciones</a>
     <a href="#modulos">Módulos</a>
     <a href="#precios">Precios</a>
     <a href="/app">Ingresar</a>
-    <a href="/app" class="btn-nav"><span>Crear cuenta →</span></a>
+    <a href="/app" class="nav-cta">Crear cuenta gratis →</a>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-eyebrow">
-    <span class="hero-eyebrow-dot"></span>
-    Sistema activo · Para equipos de construcción
-  </div>
-  <h1>
-    <span class="line1">Gestiona tu obra<br></span>
-    <span class="gradient-text">en tiempo real</span>
-  </h1>
-  <p class="hero-sub">Controla avances, personal, materiales y bodega desde cualquier lugar. Todo tu equipo sincronizado en una sola plataforma.</p>
-  <div class="hero-btns">
-    <a href="/app" class="btn-primary">Crear cuenta gratis →</a>
-    <a href="#modulos" class="btn-outline">Ver módulos</a>
-  </div>
-  <div class="hero-metrics">
-    <div class="hero-metric">
-      <div class="hero-metric-val"><span>14</span></div>
-      <div class="hero-metric-label">Módulos integrados</div>
+  <div class="hero-bg"></div>
+  <div class="hero-overlay-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-left">
+      <div class="hero-tag"><span class="hero-tag-dot"></span> Software N°1 para obras en Chile</div>
+      <h1>
+        Controla tu obra<br>
+        <span class="hero-accent">desde cualquier lugar</span>
+      </h1>
+      <p class="hero-desc">Personal, materiales, avances y bodega en tiempo real. Todo tu equipo sincronizado. Sin Excel, sin papel, sin caos.</p>
+      <div class="hero-btns">
+        <a href="/app" class="btn-orange"><span>Crear cuenta gratis →</span></a>
+        <a href="#features" class="btn-ghost">Ver funciones</a>
+      </div>
     </div>
-    <div class="hero-metric">
-      <div class="hero-metric-val"><span>∞</span></div>
-      <div class="hero-metric-label">Obras por empresa</div>
-    </div>
-    <div class="hero-metric">
-      <div class="hero-metric-val"><span>100%</span></div>
-      <div class="hero-metric-label">Web — sin instalación</div>
-    </div>
-    <div class="hero-metric">
-      <div class="hero-metric-val"><span>PDF</span></div>
-      <div class="hero-metric-label">Informes automáticos</div>
+    <div class="hero-right">
+      <div class="hero-visual">
+        <div class="hero-card-main">
+          <div class="hero-card-header">
+            <span class="hero-card-title">🏢 Torre Norte — Edificio</span>
+            <span class="hero-card-live"><span class="hero-card-live-dot"></span> En vivo</span>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="hero-stat-val" style="color:var(--orange);">73%</div>
+              <div class="hero-stat-label">Avance general</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-val" style="color:var(--green);">18</div>
+              <div class="hero-stat-label">Personal hoy</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-val" style="color:var(--cyan);">124</div>
+              <div class="hero-stat-label">Items bodega</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-val" style="color:var(--yellow);">6</div>
+              <div class="hero-stat-label">Viajes hoy</div>
+            </div>
+          </div>
+          <div class="hero-bar-row">
+            <div class="hero-bar-label"><span>Partidas completadas</span><span style="color:var(--orange)">73%</span></div>
+            <div class="hero-bar-track"><div class="hero-bar-fill" style="width:73%;background:linear-gradient(90deg,var(--orange),var(--yellow));"></div></div>
+          </div>
+          <div class="hero-bar-row">
+            <div class="hero-bar-label"><span>Asistencia hoy</span><span style="color:var(--green)">89%</span></div>
+            <div class="hero-bar-track"><div class="hero-bar-fill" style="width:89%;background:linear-gradient(90deg,var(--green),#34d399);"></div></div>
+          </div>
+          <div class="hero-bar-row">
+            <div class="hero-bar-label"><span>Stock sobre mínimo</span><span style="color:var(--cyan)">95%</span></div>
+            <div class="hero-bar-track"><div class="hero-bar-fill" style="width:95%;background:linear-gradient(90deg,var(--cyan),#67e8f9);"></div></div>
+          </div>
+          <div class="hero-modules-row">
+            <span class="hero-mod-tag">PARTIDAS</span>
+            <span class="hero-mod-tag">BODEGA</span>
+            <span class="hero-mod-tag">ASISTENCIA</span>
+            <span class="hero-mod-tag">GANTT</span>
+            <span class="hero-mod-tag">CÚBICO</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- DASHBOARD PREVIEW -->
-<div class="preview-section">
-  <div class="preview-wrap">
-    <div class="preview-topbar">
-      <span class="dot-red"></span>
-      <span class="dot-yellow"></span>
-      <span class="dot-green"></span>
-      <div class="preview-url-bar">
-        <span class="preview-lock">🔒</span>
-        sistema-de-obra-plum.vercel.app/app
-      </div>
-    </div>
-    <div class="preview-content">
-      <div class="prev-card">
-        <div class="prev-card-tag">Avance general</div>
-        <div class="prev-card-num" style="background:linear-gradient(135deg,#f0f6fc,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">73%</div>
-        <div class="prev-card-sub">Torre Norte · Edificio</div>
-        <div class="prev-bar"><div class="prev-bar-fill" style="width:73%;background:linear-gradient(90deg,#6c63ff,#a78bfa);"></div></div>
-      </div>
-      <div class="prev-card">
-        <div class="prev-card-tag">Personal hoy</div>
-        <div class="prev-card-num" style="background:linear-gradient(135deg,#f0f6fc,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">18</div>
-        <div class="prev-card-sub">2 ausentes · 1 permiso</div>
-        <div class="prev-bar"><div class="prev-bar-fill" style="width:85%;background:linear-gradient(90deg,#10b981,#34d399);"></div></div>
-      </div>
-      <div class="prev-card">
-        <div class="prev-card-tag">Items en bodega</div>
-        <div class="prev-card-num" style="background:linear-gradient(135deg,#f0f6fc,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">124</div>
-        <div class="prev-card-sub">3 items bajo mínimo</div>
-        <div class="prev-bar"><div class="prev-bar-fill" style="width:60%;background:linear-gradient(90deg,#22d3ee,#67e8f9);"></div></div>
-      </div>
-    </div>
-  </div>
+<!-- STATS BAND -->
+<div class="stats-band">
+  <div class="stat-item"><div class="stat-num">14</div><div class="stat-label">Módulos integrados</div></div>
+  <div class="stat-item"><div class="stat-num">∞</div><div class="stat-label">Obras por empresa</div></div>
+  <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">Web — sin instalación</div></div>
+  <div class="stat-item"><div class="stat-num">PDF</div><div class="stat-label">Informes automáticos</div></div>
 </div>
 
 <!-- FEATURES -->
-<section class="section">
-  <div class="text-center">
-    <div class="section-tag">Por qué elegirnos</div>
-    <h2 class="section-h">Construido para la realidad<br>de la obra chilena</h2>
-    <p class="section-p">Sin pasos innecesarios. Sin curvas de aprendizaje imposibles. Diseñado por y para el sector construcción.</p>
+<section class="section" id="features">
+  <div class="tc">
+    <span class="section-tag">Funcionalidades</span>
+    <h2 class="section-h">Todo lo que necesita tu obra</h2>
+    <p class="section-p">Construido para la realidad del sector construcción chileno. Sin curvas de aprendizaje imposibles.</p>
   </div>
-  <div class="features-wrap">
-    <div class="feat-card">
-      <div class="feat-icon-wrap">⚡</div>
-      <div class="feat-title">Sincronización en tiempo real</div>
-      <div class="feat-desc">Todos los cambios se propagan al instante. Jefe de obra, bodeguero y gerencia siempre ven los mismos datos actualizados.</div>
+  <div class="feats-grid">
+    <div class="feat">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Tiempo real</div>
+      <div class="feat-desc">Todos los cambios se sincronizan al instante. Jefe de obra en terreno y gerencia en oficina ven los mismos datos.</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon-wrap">🏢</div>
+    <div class="feat">
+      <div class="feat-icon">🏢</div>
       <div class="feat-title">Multi-obra</div>
-      <div class="feat-desc">Administra varias obras desde un mismo panel. Cambia de obra con un clic sin perder contexto ni mezclar información.</div>
+      <div class="feat-desc">Administra varias obras desde un mismo panel. Cambia de obra con un clic — datos completamente separados.</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon-wrap">📱</div>
+    <div class="feat">
+      <div class="feat-icon">📱</div>
       <div class="feat-title">Desde cualquier dispositivo</div>
-      <div class="feat-desc">Accede desde el celular en terreno, desde la oficina en PC o desde la tablet. Cero instalaciones — funciona en el navegador.</div>
+      <div class="feat-desc">Celular en terreno, PC en oficina, tablet en reunión. Sin instalaciones — funciona en cualquier navegador.</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon-wrap">👥</div>
-      <div class="feat-title">Roles y permisos</div>
-      <div class="feat-desc">Admin, Jefe de Obra, Supervisor, Bodeguero — cada usuario ve lo que necesita. Tú decides quién accede a qué.</div>
+    <div class="feat">
+      <div class="feat-icon">👷</div>
+      <div class="feat-title">Gestión de personal</div>
+      <div class="feat-desc">Control de asistencia, roles, sobre tiempo y rendimiento. Toda la información laboral de tu obra en un solo lugar.</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon-wrap">📄</div>
-      <div class="feat-title">Informes en PDF automáticos</div>
-      <div class="feat-desc">Genera informes de avance en PDF en segundos. Profesionales, listos para enviar al mandante o a gerencia.</div>
+    <div class="feat">
+      <div class="feat-icon">📄</div>
+      <div class="feat-title">Informes PDF automáticos</div>
+      <div class="feat-desc">Genera informes de avance profesionales en segundos. Listos para enviar al mandante, banco o gerencia.</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon-wrap">🔒</div>
-      <div class="feat-title">Seguridad y privacidad</div>
-      <div class="feat-desc">Datos cifrados en tránsito y en reposo. Cada empresa ve solo sus datos — garantizado por Row Level Security. Cumple Ley 21.719.</div>
+    <div class="feat">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">Seguro y cumple la ley</div>
+      <div class="feat-desc">Datos cifrados. Cada empresa ve solo sus datos. Cumple Ley N° 21.719 de protección de datos personales.</div>
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
+<!-- OBRA PHOTOS -->
+<section class="obras-section">
+  <div class="obras-heading">
+    <span class="section-tag" style="display:block;text-align:center;">Para todo tipo de obra</span>
+    <h2 class="section-h tc">Edificios, casas, urbanizaciones</h2>
+  </div>
+  <div class="obras-grid">
+    <div class="obra-img">
+      <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80" alt="Edificio en construcción" loading="lazy">
+      <div class="obra-img-label">🏗 <span>Edificios</span> en altura</div>
+    </div>
+    <div class="obra-img">
+      <img src="https://images.unsplash.com/photo-1590644365607-5ae0dfd0b4d7?w=600&q=80" alt="Casa en construcción" loading="lazy">
+      <div class="obra-img-label">🏠 <span>Casas</span></div>
+    </div>
+    <div class="obra-img">
+      <img src="https://images.unsplash.com/photo-1601598851547-4302969d0614?w=600&q=80" alt="Grúa torre" loading="lazy">
+      <div class="obra-img-label">🏗 <span>Infraestructura</span></div>
+    </div>
+    <div class="obra-img">
+      <img src="https://images.unsplash.com/photo-1626885930974-4b69aa21bbf9?w=600&q=80" alt="Trabajadores en obra" loading="lazy">
+      <div class="obra-img-label">👷 <span>Personal</span> en terreno</div>
+    </div>
+    <div class="obra-img">
+      <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80" alt="Urbanización" loading="lazy">
+      <div class="obra-img-label">🏘 <span>Urbanizaciones</span></div>
+    </div>
+  </div>
+</section>
 
 <!-- MODULES -->
-<section class="modules-section" id="modulos">
-  <div class="text-center" style="margin-bottom:48px;">
-    <div class="section-tag">Módulos</div>
+<section class="section section-bg-alt" id="modulos">
+  <div class="tc">
+    <span class="section-tag">Módulos</span>
     <h2 class="section-h">14 módulos. Todo en uno.</h2>
-    <p class="section-p" style="margin-bottom:0;">Desde el plan maestro hasta el vale de bodega. Sin integraciones externas.</p>
+    <p class="section-p">Desde el plan maestro hasta el vale de bodega. Sin integraciones externas ni costos adicionales.</p>
   </div>
-  <div class="modules-grid">
-    <div class="mod-chip"><div class="mod-icon">📋</div><div class="mod-name">Partidas</div></div>
-    <div class="mod-chip"><div class="mod-icon">📅</div><div class="mod-name">Gantt</div></div>
-    <div class="mod-chip"><div class="mod-icon">⬢</div><div class="mod-name">Pisos</div></div>
-    <div class="mod-chip"><div class="mod-icon">📆</div><div class="mod-name">Plan Personal</div></div>
-    <div class="mod-chip"><div class="mod-icon">👥</div><div class="mod-name">Asistencia</div></div>
-    <div class="mod-chip"><div class="mod-icon">🧱</div><div class="mod-name">Materiales</div></div>
-    <div class="mod-chip"><div class="mod-icon">🏪</div><div class="mod-name">Bodega</div></div>
-    <div class="mod-chip"><div class="mod-icon">🚛</div><div class="mod-name">Logística</div></div>
-    <div class="mod-chip"><div class="mod-icon">⏱</div><div class="mod-name">Sobre Tiempo</div></div>
-    <div class="mod-chip"><div class="mod-icon">📊</div><div class="mod-name">Rendimiento</div></div>
-    <div class="mod-chip"><div class="mod-icon">📄</div><div class="mod-name">Informes</div></div>
-    <div class="mod-chip"><div class="mod-icon">🪟</div><div class="mod-name">Control</div></div>
-    <div class="mod-chip"><div class="mod-icon">🗓</div><div class="mod-name">Plan Maestro</div></div>
-    <div class="mod-chip"><div class="mod-icon">📦</div><div class="mod-name">Cúbico</div></div>
+  <div class="mods-grid">
+    <div class="mod"><div class="mod-icon">📋</div><div class="mod-name">Partidas</div></div>
+    <div class="mod"><div class="mod-icon">📅</div><div class="mod-name">Gantt</div></div>
+    <div class="mod"><div class="mod-icon">⬢</div><div class="mod-name">Pisos</div></div>
+    <div class="mod"><div class="mod-icon">📆</div><div class="mod-name">Plan Personal</div></div>
+    <div class="mod"><div class="mod-icon">👥</div><div class="mod-name">Asistencia</div></div>
+    <div class="mod"><div class="mod-icon">🧱</div><div class="mod-name">Materiales</div></div>
+    <div class="mod"><div class="mod-icon">🏪</div><div class="mod-name">Bodega</div></div>
+    <div class="mod"><div class="mod-icon">🚛</div><div class="mod-name">Logística</div></div>
+    <div class="mod"><div class="mod-icon">⏱</div><div class="mod-name">Sobre Tiempo</div></div>
+    <div class="mod"><div class="mod-icon">📊</div><div class="mod-name">Rendimiento</div></div>
+    <div class="mod"><div class="mod-icon">📄</div><div class="mod-name">Informes</div></div>
+    <div class="mod"><div class="mod-icon">🪟</div><div class="mod-name">Control</div></div>
+    <div class="mod"><div class="mod-icon">🗓</div><div class="mod-name">Plan Maestro</div></div>
+    <div class="mod"><div class="mod-icon">📦</div><div class="mod-name">Cúbico</div></div>
   </div>
 </section>
 
-<div class="divider"></div>
-
 <!-- PRICING -->
-<section class="pricing-section" id="precios">
-  <div class="text-center" style="margin-bottom:56px;">
-    <div class="section-tag">Precio</div>
+<section class="section" id="precios">
+  <div class="tc">
+    <span class="section-tag">Precio</span>
     <h2 class="section-h">Un plan. Todo incluido.</h2>
-    <p class="section-p" style="margin-bottom:0;">Sin límites de obras ni usuarios. Sin funcionalidades ocultas.</p>
+    <p class="section-p">Sin límites de obras ni usuarios. Sin funcionalidades ocultas. Sin sorpresas.</p>
   </div>
-  <div class="pricing-card-wrap">
-    <div class="pricing-glow"></div>
+  <div class="pricing-wrap">
+    <div class="pricing-border"></div>
     <div class="pricing-card">
-      <div class="pricing-plan-badge">
-        <span class="pricing-plan-badge-dot"></span>
-        PLAN COMPLETO
+      <div class="pricing-badge"><span class="pricing-badge-dot"></span> PLAN COMPLETO</div>
+      <div class="pricing-amount">
+        <span class="pricing-amount-val">$69.990</span>
+        <span class="pricing-amount-per">/ mes</span>
       </div>
-      <div class="pricing-price-wrap">
-        <span class="pricing-price">$69.990</span>
-        <span class="pricing-period">/ mes</span>
-      </div>
-      <p class="pricing-desc">Acceso total para toda tu empresa. Obras y usuarios ilimitados.</p>
-      <ul class="pricing-feats">
-        <li><span class="feat-check">✓</span>Obras ilimitadas</li>
-        <li><span class="feat-check">✓</span>Usuarios ilimitados</li>
-        <li><span class="feat-check">✓</span>Los 14 módulos incluidos</li>
-        <li><span class="feat-check">✓</span>Exportación de informes PDF</li>
-        <li><span class="feat-check">✓</span>Panel de administración</li>
-        <li><span class="feat-check">✓</span>Soporte prioritario</li>
+      <p class="pricing-sub">Acceso completo para toda tu empresa — obras y usuarios ilimitados.</p>
+      <ul class="pricing-list">
+        <li><span class="p-check">✓</span>Obras ilimitadas</li>
+        <li><span class="p-check">✓</span>Usuarios ilimitados</li>
+        <li><span class="p-check">✓</span>Los 14 módulos incluidos</li>
+        <li><span class="p-check">✓</span>Exportación de informes en PDF</li>
+        <li><span class="p-check">✓</span>Panel de administración de empresa</li>
+        <li><span class="p-check">✓</span>Soporte prioritario</li>
       </ul>
-      <a href="/app" class="btn-primary" style="width:100%;text-align:center;display:block;font-size:15px;padding:15px;">
-        Comenzar prueba gratis →
-      </a>
+      <a href="/app" class="btn-orange" style="width:100%;text-align:center;display:block;font-size:15px;padding:16px;"><span>Comenzar prueba gratis →</span></a>
       <p class="pricing-note">Sin tarjeta de crédito · Cancela cuando quieras</p>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section">
+<div class="cta">
   <div class="cta-box">
-    <h2>¿Listo para ordenar tu obra?</h2>
-    <p>Crea tu cuenta en menos de 2 minutos.<br>Sin tarjeta de crédito. Sin compromiso.</p>
-    <div class="cta-btns">
-      <a href="/app" class="btn-primary" style="font-size:16px;padding:16px 40px;">Crear cuenta gratis →</a>
-      <a href="/app" class="btn-outline" style="font-size:16px;padding:16px 32px;">Iniciar sesión</a>
+    <div class="cta-photo"></div>
+    <div class="cta-content">
+      <h2>¿Listo para ordenar tu obra?</h2>
+      <p>Crea tu cuenta en menos de 2 minutos.<br>Sin tarjeta de crédito. Sin compromiso.</p>
+      <div class="cta-btns">
+        <a href="/app" class="btn-orange" style="font-size:16px;padding:16px 44px;"><span>Crear cuenta gratis →</span></a>
+        <a href="/app" class="btn-ghost" style="font-size:16px;padding:16px 32px;">Iniciar sesión</a>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
 <!-- FOOTER -->
 <footer>
-  <a href="/" class="footer-logo">
-    <div class="footer-logo-icon">✦</div>
-    <span class="footer-logo-text">SISTEMA DE OBRA</span>
+  <a href="/" class="footer-brand">
+    <div class="footer-brand-icon">🏗</div>
+    <span class="footer-brand-text">SISTEMA DE OBRA</span>
   </a>
   <div class="footer-links">
     <a href="/terminos">Términos y condiciones</a>
     <a href="/privacidad">Privacidad</a>
     <a href="mailto:contacto@sistemaobra.app">Contacto</a>
   </div>
-  <span class="footer-copy">© 2026 Sistema de Obra</span>
+  <span class="footer-copy">© 2026 Sistema de Obra · Chile</span>
 </footer>
 
 </body>
