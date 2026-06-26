@@ -16870,8 +16870,13 @@ function App({initialData}){
     setEmpresaInfo('loading');
     _supabase.from('profiles').select('es_admin,nombre').eq('id',auth.supabaseId).maybeSingle()
       .then(function(res){
-        if(res.data&&res.data.nombre)setNombrePerfil(res.data.nombre);
-        if(res.data&&res.data.es_admin){setIsAdmin(true);setEmpresaInfo(false);return;}
+        if(res.error){
+          // Error en profiles (ej. RLS recursion) — caer directo a empresa_miembros
+          console.error('profiles error',res.error);
+        } else {
+          if(res.data&&res.data.nombre)setNombrePerfil(res.data.nombre);
+          if(res.data&&res.data.es_admin){setIsAdmin(true);setEmpresaInfo(false);return;}
+        }
         _supabase.from('empresa_miembros')
           .select('id,rol,empresa_id,empresas(id,nombre)')
           .eq('profile_id',auth.supabaseId)
