@@ -437,7 +437,8 @@ function useToast(){
     clearTimeout(ref.current);
     ref.current=setTimeout(()=>setMsg(null),1900);
   };
-  return[msg,show];
+  const clear=()=>{clearTimeout(ref.current);setMsg(null);};
+  return[msg,show,clear];
 }
 // ── LOGIN ──────────────────────────────────────────────────
 function Login({onLogin}){
@@ -4129,7 +4130,7 @@ function MaterialesViewSB({matItems,matStock,obraInfo,onItemCreate,onStockUpdate
 }
 
 // ── ASISTENCIA VIEW SUPABASE ────────────────────────────────
-function AsistenciaViewSB({personalData,asistDias,obraInfo,onPersonalCreate,onAsistMark,toast}){
+function AsistenciaViewSB({personalData,asistDias,obraInfo,onPersonalCreate,onPersonalDelete,onAsistMark,toast}){
   var[tab,setTab]=useState('asistencia');
   var[yr,setYr]=useState(new Date().getFullYear());
   var[mo,setMo]=useState(new Date().getMonth());
@@ -4317,7 +4318,12 @@ function AsistenciaViewSB({personalData,asistDias,obraInfo,onPersonalCreate,onAs
               color:p.tipo==='casa'?'var(--blue)':'var(--purple)',
               background:p.tipo==='casa'?'rgba(59,130,246,.1)':'rgba(139,92,246,.1)',
               padding:'2px 7px',borderRadius:4,letterSpacing:'.04em'}},
-              p.tipo==='casa'?'CASA':'SUBCTO')
+              p.tipo==='casa'?'CASA':'SUBCTO'),
+            onPersonalDelete&&h('button',{
+              onClick:function(){if(window.confirm('¿Eliminar a '+p.nombre+'?'))onPersonalDelete(p.id);},
+              style:{background:'none',border:'none',color:'var(--text3)',cursor:'pointer',
+                fontSize:16,padding:'2px 6px',borderRadius:4,lineHeight:1,flexShrink:0},
+              title:'Eliminar trabajador'},'✕')
           );
         })
       )
@@ -16854,7 +16860,7 @@ function App({initialData}){
     }
     if(window.fbSave)window.fbSave(ns);
   };
-  const[toastMsg,showToast]=useToast();
+  const[toastMsg,showToast,clearToast]=useToast();
   const[showBackupMenu,setShowBackupMenu]=useState(false);
   const backupInputRef=useRef(null);
   const{auth,tab='dash',saves={},ganttData={},weekData={},rendData={},cubicData={},logData={},matData={},bodegaData={}}=state;
@@ -17104,7 +17110,7 @@ function App({initialData}){
       'Cargando estructura...'
     );
   // obraInfo es objeto (tiene obra) o empresaInfo==='legacy' → app normal
-  const setTab=(t)=>save({tab:t});
+  const setTab=(t)=>{clearToast();save({tab:t});};
   const onSave=(dep,sv)=>save({saves:{...saves,[dep]:sv}});
   const onGanttSave=(gd)=>save({ganttData:gd});
   const onWeekSave=(wk,wd)=>save({weekData:{...weekData,[wk]:wd}});
@@ -17284,6 +17290,12 @@ function App({initialData}){
     setPersonalData(function(prev){return (prev||[]).concat([Object.assign({id},datos)]).sort(function(a,b){return a.nombre.localeCompare(b.nombre);});});
     showToast('Trabajador agregado');
   }
+  async function handlePersonalDelete(id){
+    var r=await _supabase.from('personal').delete().eq('id',id);
+    if(r.error){showToast('Error: '+r.error.message);return;}
+    setPersonalData(function(prev){return (prev||[]).filter(function(p){return p.id!==id;});});
+    showToast('Trabajador eliminado');
+  }
   async function handleAsistMark(personalId,fecha,estado){
     var oid=obraInfo&&typeof obraInfo==='object'?obraInfo.id:null;if(!oid)return;
     var id=crypto.randomUUID();
@@ -17328,7 +17340,7 @@ function App({initialData}){
         onTareaAdd:handlePlanTareaAdd,onTareaToggle:handlePlanTareaToggle,
         onTareaDelete:handlePlanTareaDelete,toast:showToast});
   else if(effectiveTab==='programa')content=h(ProgramaView,{ganttData,onGanttSave,saves,onSave,onWeekSave,weekData,auth,toast:showToast,userResp});
-  else if(!isLegacy&&effectiveTab==='asistencia')content=h(AsistenciaViewSB,{personalData:personalData||[],asistDias:asistDias||[],obraInfo,onPersonalCreate:handlePersonalCreate,onAsistMark:handleAsistMark,toast:showToast});
+  else if(!isLegacy&&effectiveTab==='asistencia')content=h(AsistenciaViewSB,{personalData:personalData||[],asistDias:asistDias||[],obraInfo,onPersonalCreate:handlePersonalCreate,onPersonalDelete:handlePersonalDelete,onAsistMark:handleAsistMark,toast:showToast});
   else if(effectiveTab==='asistencia')content=h(AsistenciaView,{asistData,onAsistSave,orgData,onOrgSave,auth,toast:showToast});
   else if(!isLegacy&&effectiveTab==='materiales')content=h(MaterialesViewSB,{matItems:matItems||[],matStock:matStock||[],obraInfo,onItemCreate:handleMatItemCreate,onStockUpdate:handleMatStockUpdate,toast:showToast});
   else if(effectiveTab==='materiales')content=h(MatView,{saves,matData,onMatSave,auth,toast:showToast});
