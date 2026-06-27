@@ -440,6 +440,22 @@ function useToast(){
   const clear=()=>{clearTimeout(ref.current);setMsg(null);};
   return[msg,show,clear];
 }
+function useConfirm(){
+  const[state,setState]=useState(null);
+  const confirm=(msg,okLabel='Eliminar')=>new Promise(resolve=>{setState({msg,okLabel,resolve});});
+  const ok=()=>{if(state){state.resolve(true);setState(null);}};
+  const cancel=()=>{if(state){state.resolve(false);setState(null);}};
+  const ui=state?h('div',{className:'modal-overlay',onClick:cancel},
+    h('div',{className:'modal',style:{maxWidth:360,padding:'24px'},onClick:e=>e.stopPropagation()},
+      h('p',{style:{margin:'0 0 20px',fontSize:15,lineHeight:1.5}},state.msg),
+      h('div',{style:{display:'flex',gap:10,justifyContent:'flex-end'}},
+        h('button',{onClick:cancel,style:{padding:'8px 18px',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:8,color:'var(--text)',cursor:'pointer',fontSize:14}},'Cancelar'),
+        h('button',{onClick:ok,style:{padding:'8px 18px',background:'var(--red)',border:'none',borderRadius:8,color:'#fff',cursor:'pointer',fontWeight:600,fontSize:14}},state.okLabel)
+      )
+    )
+  ):null;
+  return[confirm,ui];
+}
 // ── LOGIN ──────────────────────────────────────────────────
 function Login({onLogin}){
   const[tab,setTab]=useState('login');           // 'login' | 'signup'
@@ -4130,7 +4146,7 @@ function MaterialesViewSB({matItems,matStock,obraInfo,onItemCreate,onStockUpdate
 }
 
 // ── ASISTENCIA VIEW SUPABASE ────────────────────────────────
-function AsistenciaViewSB({personalData,asistDias,obraInfo,onPersonalCreate,onPersonalDelete,onAsistMark,toast}){
+function AsistenciaViewSB({personalData,asistDias,obraInfo,onPersonalCreate,onPersonalDelete,onAsistMark,toast,onConfirm}){
   var[tab,setTab]=useState('asistencia');
   var[yr,setYr]=useState(new Date().getFullYear());
   var[mo,setMo]=useState(new Date().getMonth());
@@ -4320,7 +4336,7 @@ function AsistenciaViewSB({personalData,asistDias,obraInfo,onPersonalCreate,onPe
               padding:'2px 7px',borderRadius:4,letterSpacing:'.04em'}},
               p.tipo==='casa'?'CASA':'SUBCTO'),
             onPersonalDelete&&h('button',{
-              onClick:function(){if(window.confirm('¿Eliminar a '+p.nombre+'?'))onPersonalDelete(p.id);},
+              onClick:function(){if(onConfirm)onConfirm('¿Eliminar a '+p.nombre+'?').then(function(ok){if(ok)onPersonalDelete(p.id);});},
               style:{background:'none',border:'none',color:'var(--text3)',cursor:'pointer',
                 fontSize:16,padding:'2px 6px',borderRadius:4,lineHeight:1,flexShrink:0},
               title:'Eliminar trabajador'},'✕')
@@ -16861,6 +16877,7 @@ function App({initialData}){
     if(window.fbSave)window.fbSave(ns);
   };
   const[toastMsg,showToast,clearToast]=useToast();
+  const[showConfirm,confirmUI]=useConfirm();
   const[showBackupMenu,setShowBackupMenu]=useState(false);
   const backupInputRef=useRef(null);
   const{auth,tab='dash',saves={},ganttData={},weekData={},rendData={},cubicData={},logData={},matData={},bodegaData={}}=state;
@@ -17340,7 +17357,7 @@ function App({initialData}){
         onTareaAdd:handlePlanTareaAdd,onTareaToggle:handlePlanTareaToggle,
         onTareaDelete:handlePlanTareaDelete,toast:showToast});
   else if(effectiveTab==='programa')content=h(ProgramaView,{ganttData,onGanttSave,saves,onSave,onWeekSave,weekData,auth,toast:showToast,userResp});
-  else if(!isLegacy&&effectiveTab==='asistencia')content=h(AsistenciaViewSB,{personalData:personalData||[],asistDias:asistDias||[],obraInfo,onPersonalCreate:handlePersonalCreate,onPersonalDelete:handlePersonalDelete,onAsistMark:handleAsistMark,toast:showToast});
+  else if(!isLegacy&&effectiveTab==='asistencia')content=h(AsistenciaViewSB,{personalData:personalData||[],asistDias:asistDias||[],obraInfo,onPersonalCreate:handlePersonalCreate,onPersonalDelete:handlePersonalDelete,onAsistMark:handleAsistMark,toast:showToast,onConfirm:showConfirm});
   else if(effectiveTab==='asistencia')content=h(AsistenciaView,{asistData,onAsistSave,orgData,onOrgSave,auth,toast:showToast});
   else if(!isLegacy&&effectiveTab==='materiales')content=h(MaterialesViewSB,{matItems:matItems||[],matStock:matStock||[],obraInfo,onItemCreate:handleMatItemCreate,onStockUpdate:handleMatStockUpdate,toast:showToast});
   else if(effectiveTab==='materiales')content=h(MatView,{saves,matData,onMatSave,auth,toast:showToast});
@@ -17476,12 +17493,13 @@ function App({initialData}){
                     var depCount=Object.keys(b.data&&b.data.saves||{}).length;
                     return h('button',{key:i,
                       onClick:function(){
-                        if(window.confirm('¿Restaurar respaldo del '+d.toLocaleString('es-CL')+'?')){
+                        showConfirm('¿Restaurar respaldo del '+d.toLocaleString('es-CL')+'?','Restaurar').then(function(ok){
+                          if(!ok)return;
                           var ns=Object.assign({},state,{saves:b.data.saves||{},weekData:b.data.weekData||{},ganttData:b.data.ganttData||state.ganttData});
                           save(ns);
                           showToast('✓ Respaldo restaurado');
                           setShowBackupMenu(false);
-                        }
+                        });
                       },
                       style:{display:'block',width:'100%',textAlign:'left',
                         background:'var(--bg3)',border:'1px solid var(--border)',
@@ -17504,16 +17522,18 @@ function App({initialData}){
             var file=e.target.files[0];if(!file)return;
             importBackup(file,
               function(backup){
-                if(window.confirm('¿Importar respaldo del '+new Date(backup.fecha).toLocaleString('es-CL')+'? Se reemplazarán los avances actuales.')){
-                  var ns=Object.assign({},state,{
-                    saves:backup.saves||state.saves,
-                    weekData:backup.weekData||state.weekData,
-                    ganttData:backup.ganttData||state.ganttData
-                  });
-                  save(ns);
-                  showToast('✓ Respaldo importado correctamente');
-                }
-                e.target.value='';
+                showConfirm('¿Importar respaldo del '+new Date(backup.fecha).toLocaleString('es-CL')+'? Se reemplazarán los avances actuales.','Importar').then(function(ok){
+                  if(ok){
+                    var ns=Object.assign({},state,{
+                      saves:backup.saves||state.saves,
+                      weekData:backup.weekData||state.weekData,
+                      ganttData:backup.ganttData||state.ganttData
+                    });
+                    save(ns);
+                    showToast('✓ Respaldo importado correctamente');
+                  }
+                  e.target.value='';
+                });
               },
               function(err){showToast('✗ '+err,'var(--red)');e.target.value='';}
             );
@@ -17574,6 +17594,7 @@ function App({initialData}){
       )
     ),
     toastMsg&&h('div',{className:'toast',style:{background:toastMsg.color||'var(--green2)'}},toastMsg.m),
+    confirmUI,
     showEditNombre&&h('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,.6)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:20}},
       h('div',{style:{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:12,padding:24,width:'100%',maxWidth:340}},
         h('div',{style:{fontSize:15,fontWeight:700,marginBottom:16,color:'var(--text)'}},'Editar nombre'),
