@@ -658,8 +658,8 @@ function OnboardingEmpresa({auth,onEmpresaCreada}){
             style:{background:'rgba(255,255,255,.03)',border:'2px solid var(--border)',
               borderRadius:14,padding:'20px 12px',cursor:'pointer',textAlign:'center',transition:'all .2s'}},
             h('div',{style:{fontSize:30,marginBottom:8}},'👷'),
-            h('div',{style:{fontSize:13,fontWeight:700,color:'var(--text)',marginBottom:4}},'Soy empleado'),
-            h('div',{style:{fontSize:11,color:'var(--text2)',lineHeight:1.5}},'Me asignaron acceso a una obra')
+            h('div',{style:{fontSize:13,fontWeight:700,color:'var(--text)',marginBottom:4}},'Soy administrador'),
+            h('div',{style:{fontSize:11,color:'var(--text2)',lineHeight:1.5}},'Gestiono una obra específica')
           )
         )
       ),
@@ -714,13 +714,14 @@ function OnboardingObra({auth,empresaInfo,onObraCreada}){
   const[nPisos,setNPisos]=useState('5');
   const[pisoCero,setPisoCero]=useState('1');
   const[upPiso,setUpPiso]=useState('4');
+  const[nSubterraneos,setNSubterraneos]=useState('0');
   const[nCasas,setNCasas]=useState('10');
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState('');
   const[creada,setCreada]=useState(null);
 
-  var TLABEL={'edificio':'Edificio','departamento':'Departamento','casa':'Casa','urbanizacion':'Urbanización'};
-  var TART={'edificio':'el','departamento':'el','casa':'la','urbanizacion':'la'};
+  var TLABEL={'edificio':'Edificio','departamento':'Departamento','casa':'Casa','urbanizacion':'Urbanización','retail':'Retail'};
+  var TART={'edificio':'el','departamento':'el','casa':'la','urbanizacion':'la','retail':'el'};
   var esEdif=tipo==='edificio'||tipo==='departamento';
 
   var validar=function(){
@@ -728,7 +729,9 @@ function OnboardingObra({auth,empresaInfo,onObraCreada}){
       var p=parseInt(nPisos),p0=parseInt(pisoCero),u=parseInt(upPiso);
       if(!p||p<1||p>100)return'Pisos: número entre 1 y 100';
       if(!p0||p0<1||p0>99)return'Piso inicial: número entre 1 y 99';
-      if(!u||u<1||u>200)return'Unidades por piso: número entre 1 y 200';
+      if(!u||u<1||u>200)return'Departamentos por piso: número entre 1 y 200';
+      var ns=parseInt(nSubterraneos)||0;
+      if(ns<0||ns>20)return'Subterráneos: número entre 0 y 20';
     }else{
       var c=parseInt(nCasas);
       if(!c||c<1||c>500)return'Casas: número entre 1 y 500';
@@ -738,15 +741,17 @@ function OnboardingObra({auth,empresaInfo,onObraCreada}){
 
   var resumenTxt=function(){
     if(esEdif){
-      var p=parseInt(nPisos),p0=parseInt(pisoCero),u=parseInt(upPiso);
+      var p=parseInt(nPisos),p0=parseInt(pisoCero),u=parseInt(upPiso),ns=parseInt(nSubterraneos)||0;
       var pFin=p0+p-1;
+      var subTxt=ns>0?' + '+ns+' subterráneo'+(ns>1?'s':''):'';
+      var totalPisos=p+ns;
       return 'Vas a crear '+TART[tipo]+' '+TLABEL[tipo]+' "'+nombre+'" con '+
-        p+' piso'+(p>1?'s':'')+' (del piso '+p0+' al '+pFin+') y '+
-        u+' unidad'+(u>1?'es':'')+' por piso = '+(p*u)+' unidades en total.';
+        p+' piso'+(p>1?'s':'')+' (del '+p0+' al '+pFin+')'+subTxt+
+        ', '+u+' depto'+(u>1?'s':'')+' por piso = '+(totalPisos*u)+' unidades en total.';
     }else{
       var c=parseInt(nCasas);
-      return 'Vas a crear '+TART[tipo]+' '+TLABEL[tipo]+' "'+nombre+'" con '+
-        c+' casa'+(c>1?'s':'')+'.';
+      var unidNom=tipo==='retail'?('local'+(c>1?'es':'')):('casa'+(c>1?'s':''));
+      return 'Vas a crear '+TART[tipo]+' '+TLABEL[tipo]+' "'+nombre+'" con '+c+' '+unidNom+'.';
     }
   };
 
@@ -774,24 +779,36 @@ function OnboardingObra({auth,empresaInfo,onObraCreada}){
       var unidadesArr=[];
 
       if(esEdif){
-        var np=parseInt(nPisos),p0=parseInt(pisoCero),up=parseInt(upPiso);
+        var np=parseInt(nPisos),p0=parseInt(pisoCero),up=parseInt(upPiso),ns=parseInt(nSubterraneos)||0;
+        var pisoOrd=0,unidOrd=0;
+        for(var s=ns;s>=1;s--){
+          var pid=crypto.randomUUID();
+          pisosArr.push({id:pid,obra_id:obraId,nombre:'Subterráneo '+s,orden:pisoOrd++});
+          for(var j=1;j<=up;j++){
+            var cod='S'+s+'-'+j;
+            unidadesArr.push({id:crypto.randomUUID(),obra_id:obraId,piso_id:pid,
+              codigo:cod,nombre:'Depto '+cod,tipo:'departamento',orden:unidOrd++});
+          }
+        }
         for(var i=0;i<np;i++){
           var pid=crypto.randomUUID();
           var pNum=p0+i;
-          pisosArr.push({id:pid,obra_id:obraId,nombre:'Piso '+pNum,orden:i});
+          pisosArr.push({id:pid,obra_id:obraId,nombre:'Piso '+pNum,orden:pisoOrd++});
           for(var j=1;j<=up;j++){
             var cod=String(pNum*100+j);
             unidadesArr.push({id:crypto.randomUUID(),obra_id:obraId,piso_id:pid,
-              codigo:cod,nombre:'Depto '+cod,tipo:'departamento',orden:i*up+(j-1)});
+              codigo:cod,nombre:'Depto '+cod,tipo:'departamento',orden:unidOrd++});
           }
         }
       }else{
         var pid=crypto.randomUUID();
         var nc=parseInt(nCasas);
+        var esRetail=tipo==='retail';
         pisosArr.push({id:pid,obra_id:obraId,nombre:'General',orden:0});
         for(var j=1;j<=nc;j++){
+          var cod=esRetail?('Local '+j):('Casa '+j);
           unidadesArr.push({id:crypto.randomUUID(),obra_id:obraId,piso_id:pid,
-            codigo:'Casa '+j,nombre:'Casa '+j,tipo:'casa',orden:j-1});
+            codigo:cod,nombre:cod,tipo:esRetail?'local':'casa',orden:j-1});
         }
       }
 
@@ -881,7 +898,7 @@ function OnboardingObra({auth,empresaInfo,onObraCreada}){
         stepLbl('NUEVA OBRA — PASO 2 DE 3'),
         h('div',{style:{fontSize:20,fontWeight:700,color:'var(--text)'}},'¿Qué vas a construir?'),
         h('div',{style:{display:'flex',gap:8}},
-          ['edificio','departamento','casa','urbanizacion'].map(function(t){
+          ['edificio','departamento','casa','urbanizacion','retail'].map(function(t){
             return h('button',{key:t,style:tipoBtn(t),onClick:function(){setTipo(t);}},TLABEL[t]);
           })
         ),
@@ -913,13 +930,20 @@ function OnboardingObra({auth,empresaInfo,onObraCreada}){
               onChange:function(e){setPisoCero(e.target.value);}})
           )
         ),
-        h('div',null,
-          h('label',{style:lbl},'¿Unidades por piso?'),
-          h('input',{style:{...inp,maxWidth:140},type:'number',min:1,max:200,
-            value:upPiso,onChange:function(e){setUpPiso(e.target.value);}})
+        h('div',{style:{display:'flex',gap:12}},
+          h('div',{style:{flex:1}},
+            h('label',{style:lbl},'¿Departamentos por piso?'),
+            h('input',{style:inp,type:'number',min:1,max:200,
+              value:upPiso,onChange:function(e){setUpPiso(e.target.value);}})
+          ),
+          h('div',{style:{flex:1}},
+            h('label',{style:lbl},'¿Subterráneos?'),
+            h('input',{style:inp,type:'number',min:0,max:20,value:nSubterraneos,
+              onChange:function(e){setNSubterraneos(e.target.value);}})
+          )
         )
       ):h('div',null,
-        h('label',{style:lbl},'¿Cuántas casas?'),
+        h('label',{style:lbl},tipo==='retail'?'¿Cuántos locales?':'¿Cuántas casas?'),
         h('input',{style:{...inp,maxWidth:150},type:'number',min:1,max:500,
           value:nCasas,onChange:function(e){setNCasas(e.target.value);}})
       ),
