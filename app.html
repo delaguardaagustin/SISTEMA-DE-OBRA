@@ -48,7 +48,7 @@ window.onerror=function(msg,src,line,col,err){
   var el=document.getElementById('boot-error');
   var bm=document.getElementById('boot-msg');
   if(el){el.style.display='block';el.textContent='Error: '+msg+' (línea '+line+')';}
-  if(bm)bm.style.background='#0a1628';
+  if(bm)bm.style.background='#080d18';
   return false;
 };
 window.addEventListener('unhandledrejection',function(e){
@@ -272,7 +272,7 @@ input,select,textarea{font-family:var(--font);outline:none}
 </head>
 <body>
 <div id="root">
-  <div id="boot-msg" style="position:fixed;inset:0;background:#0a1628;z-index:9999;">
+  <div id="boot-msg" style="position:fixed;inset:0;background:#080d18;z-index:9999;">
     <div id="boot-error" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:12px 18px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:8px;color:#f87171;font-size:12px;max-width:480px;text-align:center;"></div>
   </div>
 </div>
@@ -10721,7 +10721,7 @@ class ErrorBoundary extends React.Component{
       var msg=this.state.err?this.state.err.message:'Error desconocido';
       var stack=this.state.info?this.state.info.componentStack:'';
       return React.createElement('div',{style:{
-        position:'fixed',inset:0,background:'#0a1628',display:'flex',
+        position:'fixed',inset:0,background:'#080d18',display:'flex',
         flexDirection:'column',alignItems:'center',justifyContent:'center',
         padding:24,fontFamily:'monospace',zIndex:9999
       }},
@@ -14142,7 +14142,7 @@ function InformeSemanalView({ganttData,saves,onSave,onGanttSave,reportData,onRep
   },[vencidasAll,showVencComp]);
 
   // ── Status badge helper ────────────────────────────────────────────────
-  const fcol={'1':'#ffb800','2':'#00c8ff','3':'#00ff9d','4':'#ff3d3d'};
+  const fcol={'1':'#ffb800','2':'#f97316','3':'#00ff9d','4':'#ff3d3d'};
   function statusBtn(key){
     var v=comp[key];
     var opts=[['ok','✓ Cumplió','#22c55e'],['par','⚠ Parcial','#f97316'],['nok','✗ No cumplió','#ef4444']];
@@ -14178,11 +14178,11 @@ function InformeSemanalView({ganttData,saves,onSave,onGanttSave,reportData,onRep
       '.inf-pr{display:none;}'+
       '#informe-print-root{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#fff;overflow:auto;font-family:Arial,sans-serif;font-size:10pt;color:#000;}'+
       '#informe-print-root .inf-hdr{text-align:center;border-bottom:2px solid #1a3050;padding-bottom:8px;margin-bottom:12px;}'+
-      '#informe-print-root .inf-ttl{font-size:16pt;font-weight:700;letter-spacing:1px;color:#0a1220;}'+
+      '#informe-print-root .inf-ttl{font-size:16pt;font-weight:700;letter-spacing:1px;color:#080d18;}'+
       '#informe-print-root .inf-sub{font-size:9pt;color:#6b8fa8;margin-top:2px;}'+
-      '#informe-print-root .inf-per{font-size:10pt;font-weight:700;background:#0a1220;color:#fff;display:inline-block;padding:2px 12px;border-radius:3px;margin-top:4px;}'+
+      '#informe-print-root .inf-per{font-size:10pt;font-weight:700;background:#080d18;color:#fff;display:inline-block;padding:2px 12px;border-radius:3px;margin-top:4px;}'+
       '#informe-print-root .inf-sec{margin-top:14px;page-break-inside:avoid;}'+
-      '#informe-print-root .inf-sec-ttl{font-size:10pt;font-weight:700;letter-spacing:1px;background:#0a1220;color:#fff;padding:4px 8px;margin-bottom:0;}'+
+      '#informe-print-root .inf-sec-ttl{font-size:10pt;font-weight:700;letter-spacing:1px;background:#080d18;color:#fff;padding:4px 8px;margin-bottom:0;}'+
       '#informe-print-root table{width:100%;border-collapse:collapse;font-size:8.5pt;}'+
       '#informe-print-root th{background:#e8eef4;padding:4px 6px;text-align:left;border:1px solid #cdd5dd;font-size:8pt;font-weight:700;letter-spacing:.3px;}'+
       '#informe-print-root td{padding:3px 6px;border:1px solid #dde4ea;vertical-align:middle;}'+
@@ -14204,7 +14204,7 @@ function InformeSemanalView({ganttData,saves,onSave,onGanttSave,reportData,onRep
     // Header diferenciado según si es general o por especialidad
     if(esFiltrado){
       h2+='<div class="inf-hdr">';
-      h2+='<div style="display:inline-block;background:#0a1220;color:#00c8ff;padding:2px 12px;border-radius:3px;font-size:8pt;font-weight:700;letter-spacing:1px;margin-bottom:6px">INFORME PERSONAL</div>';
+      h2+='<div style="display:inline-block;background:#080d18;color:#f97316;padding:2px 12px;border-radius:3px;font-size:8pt;font-weight:700;letter-spacing:1px;margin-bottom:6px">INFORME PERSONAL</div>';
       h2+='<div class="inf-ttl" style="font-size:14pt">'+labelResp+'</div>';
       h2+='<div class="inf-sub">EDIFICIO BASCUÑÁN &mdash; TUS TAREAS DE LA SEMANA</div>';
       h2+='<div class="inf-per">SEMANA '+semNum(wStart)+' &nbsp;|&nbsp; '+fmtD(wStart)+' &nbsp;&rarr;&nbsp; '+fmtD(wEnd)+'</div>';
@@ -14367,14 +14367,14 @@ function InformeSemanalView({ganttData,saves,onSave,onGanttSave,reportData,onRep
         '<title>'+docTitle+'</title>'+
         '<style>'+
           'body{font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff;margin:0;padding:0;}'+
-          '.inf-toolbar{background:#0a1220;color:#fff;padding:12px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:99;}'+
+          '.inf-toolbar{background:#080d18;color:#fff;padding:12px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:99;}'+
           '.inf-toolbar span{font-size:12px;font-weight:700;flex:1;}'+
           '.inf-hdr{text-align:center;border-bottom:2px solid #1a3050;padding:12px;margin-bottom:12px;}'+
-          '.inf-ttl{font-size:18pt;font-weight:700;color:#0a1220;}'+
+          '.inf-ttl{font-size:18pt;font-weight:700;color:#080d18;}'+
           '.inf-sub{font-size:10pt;color:#6b8fa8;margin-top:3px;}'+
-          '.inf-per{font-size:11pt;font-weight:700;background:#0a1220;color:#fff;display:inline-block;padding:3px 14px;border-radius:3px;margin-top:5px;}'+
+          '.inf-per{font-size:11pt;font-weight:700;background:#080d18;color:#fff;display:inline-block;padding:3px 14px;border-radius:3px;margin-top:5px;}'+
           '.inf-sec{margin:14px 12px;page-break-inside:avoid;}'+
-          '.inf-sec-ttl{font-size:11pt;font-weight:700;background:#0a1220;color:#fff;padding:5px 10px;margin-bottom:0;}'+
+          '.inf-sec-ttl{font-size:11pt;font-weight:700;background:#080d18;color:#fff;padding:5px 10px;margin-bottom:0;}'+
           'table{width:100%;border-collapse:collapse;font-size:9pt;}'+
           'th{background:#e8eef4;padding:5px 7px;text-align:left;border:1px solid #cdd5dd;font-weight:700;}'+
           'td{padding:4px 7px;border:1px solid #dde4ea;vertical-align:middle;}'+
@@ -16321,7 +16321,7 @@ function ControlView({saves,onSave,ganttData,onGanttSave,auth,toast}){
 
 // ── PLAN MAESTRO VIEW ────────────────────────────────────────────────────
 const PM_CSS=`.pm-root{font-family:Arial,sans-serif;font-size:12px;background:var(--bg);color:var(--text);min-height:100%;}
-.pm-root .pm-hdr{background:linear-gradient(135deg,#060b14,#0a1628,#060b14);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:relative;}
+.pm-root .pm-hdr{background:linear-gradient(135deg,#080d18,#0d1526,#080d18);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:relative;}
 .pm-root .pm-hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f472b6,#facc15,#60a5fa,#34d399,#fb923c,#a78bfa,#2dd4bf,#f87171,#86efac,#fcd34d);}
 .pm-root .pm-htitle{font-size:14px;font-weight:700;color:#fff;letter-spacing:1.5px;}
 .pm-root .pm-hsub{font-size:9px;color:var(--accent);margin-top:2px;}
@@ -16360,7 +16360,7 @@ const PM_CSS=`.pm-root{font-family:Arial,sans-serif;font-size:12px;background:va
 .pm-root .ptbl tr:hover td{background:rgba(255,255,255,.015);}
 .pm-root .fb{display:inline-block;padding:1px 5px;border-radius:3px;font-size:8px;font-weight:700;margin-right:3px;}
 .pm-root .fb.f1{background:rgba(255,184,0,.15);color:#ffb800;}
-.pm-root .fb.f2{background:rgba(0,200,255,.15);color:#00c8ff;}
+.pm-root .fb.f2{background:rgba(249,115,22,.15);color:#f97316;}
 .pm-root .fb.f3{background:rgba(0,255,157,.15);color:#00ff9d;}
 .pm-root .fb.f4{background:rgba(255,61,61,.15);color:#ff3d3d;}
 .pm-root .pm-prog-wrap{overflow-x:auto;}
@@ -16616,7 +16616,7 @@ function runPlanMaestro(root){
   if(statsEl){
     var kpis=[
       {lbl:"FASE 1 — OBRA GRUESA",val:74,color:"#ffb800",sub:"partidas · Paul/Hanz preparan"},
-      {lbl:"FASE 2 — TERMINACIONES MEDIAS",val:49,color:"#00c8ff",sub:"partidas · Vale/Angélica"},
+      {lbl:"FASE 2 — TERMINACIONES MEDIAS",val:49,color:"#f97316",sub:"partidas · Vale/Angélica"},
       {lbl:"FASE 3 — TERMINACIONES FINAS",val:38,color:"#00ff9d",sub:"partidas · Vale/Angélica + subs"},
       {lbl:"FASE 4 — ENTREGA",val:3,color:"#ff3d3d",sub:"partidas · Sup. entrega"}
     ];
@@ -16629,7 +16629,7 @@ function runPlanMaestro(root){
   if(flujoEl){
     var phases=[
       {key:'f1',label:'FASE 1 — OBRA GRUESA',color:'#ffb800',w:28},
-      {key:'f2',label:'FASE 2 — TERMINACIONES MEDIAS',color:'#00c8ff',w:28},
+      {key:'f2',label:'FASE 2 — TERMINACIONES MEDIAS',color:'#f97316',w:28},
       {key:'f3',label:'FASE 3 — TERMINACIONES FINAS',color:'#00ff9d',w:18},
       {key:'f4',label:'FASE 4 — ENTREGA',color:'#ff3d3d',w:5}
     ];
@@ -16638,7 +16638,7 @@ function runPlanMaestro(root){
     fh+='<th style="min-width:160px">RESPONSABLE</th><th style="min-width:80px;text-align:center">PRED.</th>';
     fh+='<th style="text-align:left;min-width:180px">BARRA</th></tr></thead><tbody>';
     phases.forEach(function(ph){
-      fh+='<tr><td colspan="5" style="background:#0a1220;padding:5px 7px;font-size:9px;font-weight:700;letter-spacing:1px;color:'+ph.color+'">'+ph.label+'</td></tr>';
+      fh+='<tr><td colspan="5" style="background:#080d18;padding:5px 7px;font-size:9px;font-weight:700;letter-spacing:1px;color:'+ph.color+'">'+ph.label+'</td></tr>';
       PA[ph.key].forEach(function(p){
         var c=gc(p.r);var cs=sfx(c,0.3);
         var w=Math.min(p.t*ph.w,110);
