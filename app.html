@@ -2403,7 +2403,7 @@ function AdminViewSB({auth,onSalir}){
   }
 
   async function aprobarUsuario(prof){
-    var r=await _supabase.from('profiles').update({aprobado:true}).eq('id',prof.id);
+    var r=await _supabase.rpc('approve_user',{user_id:prof.id});
     if(r.error){showToast('Error: '+r.error.message);return;}
     setProfiles(function(p){return p.map(function(x){return x.id===prof.id?Object.assign({},x,{aprobado:true}):x;});});
     showToast('✓ Usuario aprobado: '+prof.email);
