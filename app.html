@@ -2288,6 +2288,38 @@ function CubicoViewSB({cubFilas,cubMeds,cubAvance,partidasData,fasesData,unidade
   );
 }
 
+// ── CUENTA PENDIENTE VIEW ────────────────────────────────────
+function CuentaPendienteView({auth,onSalir,setCuentaPendiente}){
+  React.useEffect(function(){
+    var interval=setInterval(function(){
+      _supabase.from('profiles').select('aprobado').eq('id',auth.supabaseId).maybeSingle()
+        .then(function(res){
+          if(res.data&&res.data.aprobado===true){
+            setCuentaPendiente(false);
+          }
+        });
+    },5000);
+    return function(){clearInterval(interval);};
+  },[]);
+  return h('div',{style:{position:'fixed',inset:0,display:'flex',alignItems:'center',
+    justifyContent:'center',background:'var(--bg)',padding:24,fontFamily:'var(--font)'}},
+    h('div',{style:{maxWidth:400,width:'100%',background:'var(--bg2)',border:'1px solid var(--border)',
+      borderRadius:16,padding:'40px 32px',textAlign:'center',display:'flex',flexDirection:'column',gap:16,alignItems:'center'}},
+      h('div',{style:{width:48,height:48,border:'3px solid var(--border)',
+        borderTopColor:'var(--accent)',borderRadius:'50%',
+        animation:'spin .9s linear infinite'}}),
+      h('div',{style:{fontSize:18,fontWeight:800,color:'var(--text)'}},'Verificando tu cuenta'),
+      h('div',{style:{fontSize:13,color:'var(--text2)',lineHeight:1.7}},
+        'Tu cuenta está siendo revisada por nuestro equipo. Recibirás acceso en breve. Esta pantalla se actualizará automáticamente.'),
+      h('div',{style:{fontSize:11,color:'var(--text3)'}},'Revisando cada 5 segundos...'),
+      h('button',{onClick:onSalir,
+        style:{marginTop:8,background:'transparent',border:'1px solid var(--border)',
+          borderRadius:8,padding:'8px 20px',cursor:'pointer',fontSize:12,color:'var(--text3)'}},
+        'Cerrar sesión')
+    )
+  );
+}
+
 // ── ADMIN VIEW SUPABASE ─────────────────────────────────────
 var ROLES_OBRA=['jefe_obra','supervisor','subcontrato','bodeguero','visualizador'];
 
@@ -2315,7 +2347,7 @@ function AdminViewSB({auth,onSalir}){
     Promise.all([
       _supabase.from('empresas').select('id,nombre,created_at').order('created_at',{ascending:false}),
       _supabase.from('obras').select('id,nombre,tipo,empresa_id,created_at').order('created_at',{ascending:false}),
-      _supabase.from('profiles').select('id,email,nombre,es_admin').order('email'),
+      _supabase.from('profiles').select('id,email,nombre,es_admin,aprobado').order('email'),
       _supabase.from('equipo_miembros').select('id,obra_id,profile_id,rol')
     ]).then(function(results){
       setEmpresas(results[0].data||[]);
@@ -2368,6 +2400,13 @@ function AdminViewSB({auth,onSalir}){
     setMiembros(function(p){return p.concat([{id,obra_id:miembroForm.obra_id,profile_id:profile.id,rol:miembroForm.rol}]);});
     setShowMiembroModal(false);setMiembroForm({obra_id:'',email:'',rol:'jefe_obra'});setSaving(false);
     showToast('Miembro asignado');
+  }
+
+  async function aprobarUsuario(prof){
+    var r=await _supabase.from('profiles').update({aprobado:true}).eq('id',prof.id);
+    if(r.error){showToast('Error: '+r.error.message);return;}
+    setProfiles(function(p){return p.map(function(x){return x.id===prof.id?Object.assign({},x,{aprobado:true}):x;});});
+    showToast('✓ Usuario aprobado: '+prof.email);
   }
 
   async function quitarMiembro(m){
@@ -2498,7 +2537,13 @@ function AdminViewSB({auth,onSalir}){
                 profObras.length>0&&h('div',{style:{fontSize:10,color:'var(--accent)',marginTop:2}},
                   'Obras: '+profObras.map(function(o){return o.nombre;}).join(', '))
               ),
-              prof.es_admin&&h('span',{style:{fontSize:10,background:'rgba(99,102,241,.2)',color:'var(--accent)',borderRadius:6,padding:'2px 8px',fontWeight:700}},'ADMIN')
+              h('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4}},
+                prof.es_admin&&h('span',{style:{fontSize:10,background:'rgba(99,102,241,.2)',color:'var(--accent)',borderRadius:6,padding:'2px 8px',fontWeight:700}},'ADMIN'),
+                !prof.es_admin&&prof.aprobado===false&&h('button',{onClick:function(){aprobarUsuario(prof);},
+                  style:{background:'var(--accent)',color:'#fff',border:'none',borderRadius:6,padding:'4px 12px',cursor:'pointer',fontSize:11,fontWeight:700}},
+                  '✓ Aprobar'),
+                !prof.es_admin&&prof.aprobado===true&&h('span',{style:{fontSize:10,background:'rgba(34,197,94,.15)',color:'#22c55e',borderRadius:6,padding:'2px 8px',fontWeight:700}},'Aprobado')
+              )
             );
           })
         )
@@ -16853,14 +16898,15 @@ function App({initialData}){
   const[empresaInfo,setEmpresaInfo]=useState(null);
   const[isAdmin,setIsAdmin]=useState(false);
   const[trialExpired,setTrialExpired]=useState(false);
+  const[cuentaPendiente,setCuentaPendiente]=useState(false);
   const[nombrePerfil,setNombrePerfil]=useState('');
   const[showEditNombre,setShowEditNombre]=useState(false);
   const[editNombreVal,setEditNombreVal]=useState('');
   React.useEffect(function(){
-    if(!auth){setEmpresaInfo(null);setIsAdmin(false);return;}
+    if(!auth){setEmpresaInfo(null);setIsAdmin(false);setCuentaPendiente(false);return;}
     if(!auth.supabaseId){setEmpresaInfo('legacy');return;}
     setEmpresaInfo('loading');
-    _supabase.from('profiles').select('es_admin,nombre').eq('id',auth.supabaseId).maybeSingle()
+    _supabase.from('profiles').select('es_admin,nombre,aprobado').eq('id',auth.supabaseId).maybeSingle()
       .then(function(res){
         if(res.error){
           // Error en profiles (ej. RLS recursion) — caer directo a empresa_miembros
@@ -16868,6 +16914,7 @@ function App({initialData}){
         } else {
           if(res.data&&res.data.nombre)setNombrePerfil(res.data.nombre);
           if(res.data&&res.data.es_admin){setIsAdmin(true);setEmpresaInfo(false);return;}
+          if(res.data&&res.data.aprobado===false){setCuentaPendiente(true);setEmpresaInfo(false);return;}
         }
         _supabase.from('empresa_miembros')
           .select('id,rol,empresa_id,empresas(id,nombre,created_at)')
@@ -17071,6 +17118,8 @@ function App({initialData}){
     );
   if(isAdmin)
     return h(AdminViewSB,{auth,onSalir:function(){save({auth:null});}});
+  if(cuentaPendiente)
+    return h(CuentaPendienteView,{auth,onSalir:function(){save({auth:null});},setCuentaPendiente});
   if(trialExpired)
     return h('div',{style:{position:'fixed',inset:0,display:'flex',alignItems:'center',
       justifyContent:'center',background:'var(--bg)',padding:24,fontFamily:'var(--font)'}},
