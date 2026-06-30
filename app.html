@@ -604,6 +604,7 @@ function OnboardingEmpresa({auth,onEmpresaCreada}){
     try{
       // Guardar nombre en perfil
       await _supabase.from('profiles').update({nombre:nombreUsuario.trim()}).eq('id',auth.supabaseId);
+      await _supabase.auth.updateUser({data:{role:'Admin',nombre:nombreUsuario.trim()}});
       var empId=crypto.randomUUID();
       var res1=await _supabase.from('empresas').insert({id:empId,nombre:nombre.trim()});
       if(res1.error)throw res1.error;
@@ -17115,6 +17116,7 @@ function App({initialData}){
   if(empresaInfo===false)
     return h(OnboardingEmpresa,{auth,onEmpresaCreada:function(emp){
       setEmpresaInfo({empresa_id:emp.id,empresas:{id:emp.id,nombre:emp.nombre},rol:'owner'});
+      save({auth:Object.assign({},auth,{role:'Admin'})});
     }});
   // empresaInfo es objeto (tiene empresa) o 'legacy' (login viejo) → app normal
   // ── Verificando/creando obra (solo usuarios Supabase, no legacy) ──
