@@ -255,7 +255,9 @@ nav{
 .mod:hover .mod-name{color:var(--orange2);}
 
 /* ── PRICING ── */
-.pricing-wrap{max-width:520px;margin:0 auto;position:relative;}
+.pricing-wrap{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+.pricing-item{position:relative;}
+@media(max-width:680px){.pricing-wrap{grid-template-columns:1fr;}}
 .pricing-border{
   position:absolute;inset:-2px;border-radius:26px;
   background:linear-gradient(135deg,var(--orange),var(--yellow),var(--orange2),var(--orange));
@@ -534,28 +536,51 @@ footer{
 <section class="section" id="precios">
   <div class="tc">
     <span class="section-tag">Precio</span>
-    <h2 class="section-h">Un plan. Todo incluido.</h2>
+    <h2 class="section-h">Elige tu plan.</h2>
     <p class="section-p">Sin límites de obras ni usuarios. Sin funcionalidades ocultas. Sin sorpresas.</p>
   </div>
   <div class="pricing-wrap">
-    <div class="pricing-border"></div>
-    <div class="pricing-card">
-      <div class="pricing-badge"><span class="pricing-badge-dot"></span> PLAN COMPLETO</div>
-      <div class="pricing-amount">
-        <span class="pricing-amount-val">$69.990</span>
-        <span class="pricing-amount-per">/ mes</span>
+    <!-- MENSUAL -->
+    <div class="pricing-item">
+      <div class="pricing-card" style="border:1px solid rgba(255,255,255,.08);">
+        <div class="pricing-badge"><span class="pricing-badge-dot"></span> MENSUAL</div>
+        <div class="pricing-amount">
+          <span class="pricing-amount-val">$69.990</span>
+          <span class="pricing-amount-per">/ mes</span>
+        </div>
+        <p class="pricing-sub">Paga mes a mes. Cancela cuando quieras.</p>
+        <ul class="pricing-list">
+          <li><span class="p-check">✓</span>Obras ilimitadas</li>
+          <li><span class="p-check">✓</span>Usuarios ilimitados</li>
+          <li><span class="p-check">✓</span>Los 14 módulos incluidos</li>
+          <li><span class="p-check">✓</span>Exportación de informes en PDF</li>
+          <li><span class="p-check">✓</span>Panel de administración de empresa</li>
+          <li><span class="p-check">✓</span>Soporte prioritario</li>
+        </ul>
+        <a href="/app" class="btn-ghost" style="width:100%;text-align:center;display:block;font-size:15px;padding:16px;border-radius:12px;"><span>Comenzar →</span></a>
+        <p class="pricing-note">Sin tarjeta de crédito · Sin compromiso</p>
       </div>
-      <p class="pricing-sub">Acceso completo para toda tu empresa — obras y usuarios ilimitados.</p>
-      <ul class="pricing-list">
-        <li><span class="p-check">✓</span>Obras ilimitadas</li>
-        <li><span class="p-check">✓</span>Usuarios ilimitados</li>
-        <li><span class="p-check">✓</span>Los 14 módulos incluidos</li>
-        <li><span class="p-check">✓</span>Exportación de informes en PDF</li>
-        <li><span class="p-check">✓</span>Panel de administración de empresa</li>
-        <li><span class="p-check">✓</span>Soporte prioritario</li>
-      </ul>
-      <a href="/app" class="btn-orange" style="width:100%;text-align:center;display:block;font-size:15px;padding:16px;"><span>Comenzar prueba gratis →</span></a>
-      <p class="pricing-note">Sin tarjeta de crédito · Cancela cuando quieras</p>
+    </div>
+    <!-- ANUAL -->
+    <div class="pricing-item">
+      <div class="pricing-border"></div>
+      <div class="pricing-card">
+        <div class="pricing-badge"><span class="pricing-badge-dot"></span> ANUAL — PAGO ÚNICO</div>
+        <div class="pricing-amount">
+          <span class="pricing-amount-val">$1.000.000</span>
+        </div>
+        <p class="pricing-sub">Un solo pago por 12 meses completos. Sin renovaciones automáticas.</p>
+        <ul class="pricing-list">
+          <li><span class="p-check">✓</span>Obras ilimitadas</li>
+          <li><span class="p-check">✓</span>Usuarios ilimitados</li>
+          <li><span class="p-check">✓</span>Los 14 módulos incluidos</li>
+          <li><span class="p-check">✓</span>Exportación de informes en PDF</li>
+          <li><span class="p-check">✓</span>Panel de administración de empresa</li>
+          <li><span class="p-check">✓</span>Soporte prioritario</li>
+        </ul>
+        <a href="/app" class="btn-orange" style="width:100%;text-align:center;display:block;font-size:15px;padding:16px;"><span>Comenzar →</span></a>
+        <p class="pricing-note">Pago único · 12 meses de acceso garantizado</p>
+      </div>
     </div>
   </div>
 </section>
