@@ -16864,6 +16864,7 @@ function App({initialData}){
   // ── Empresa: verificar pertenencia tras login (hooks antes del early return) ──
   const[empresaInfo,setEmpresaInfo]=useState(null);
   const[isAdmin,setIsAdmin]=useState(false);
+  const[trialExpired,setTrialExpired]=useState(false);
   const[nombrePerfil,setNombrePerfil]=useState('');
   const[showEditNombre,setShowEditNombre]=useState(false);
   const[editNombreVal,setEditNombreVal]=useState('');
@@ -16881,12 +16882,22 @@ function App({initialData}){
           if(res.data&&res.data.es_admin){setIsAdmin(true);setEmpresaInfo(false);return;}
         }
         _supabase.from('empresa_miembros')
-          .select('id,rol,empresa_id,empresas(id,nombre)')
+          .select('id,rol,empresa_id,empresas(id,nombre,created_at)')
           .eq('profile_id',auth.supabaseId)
           .limit(1)
           .then(function(res2){
             var d=res2.data;
-            setEmpresaInfo(d&&d.length>0?d[0]:false);
+            if(d&&d.length>0){
+              var emp=d[0];
+              setEmpresaInfo(emp);
+              var createdAt=emp.empresas&&emp.empresas.created_at;
+              if(createdAt){
+                var diasTranscurridos=(Date.now()-new Date(createdAt).getTime())/(1000*60*60*24);
+                if(diasTranscurridos>7)setTrialExpired(true);
+              }
+            }else{
+              setEmpresaInfo(false);
+            }
           });
       });
   },[auth?auth.supabaseId:null]);
@@ -17072,6 +17083,35 @@ function App({initialData}){
     );
   if(isAdmin)
     return h(AdminViewSB,{auth,onSalir:function(){save({auth:null});}});
+  if(trialExpired)
+    return h('div',{style:{position:'fixed',inset:0,display:'flex',alignItems:'center',
+      justifyContent:'center',background:'var(--bg)',padding:24,fontFamily:'var(--font)'}},
+      h('div',{style:{maxWidth:420,width:'100%',background:'var(--bg2)',border:'1px solid var(--border)',
+        borderRadius:16,padding:'40px 32px',textAlign:'center',display:'flex',flexDirection:'column',gap:16}},
+        h('div',{style:{fontSize:40}},'⏰'),
+        h('div',{style:{fontSize:20,fontWeight:800,color:'var(--text)'}},'Tu prueba gratuita terminó'),
+        h('div',{style:{fontSize:13,color:'var(--text2)',lineHeight:1.7}},
+          'Tus 7 días de prueba han expirado. Para seguir usando Sistema de Obra elige un plan.'),
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,margin:'8px 0'}},
+          h('div',{style:{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,padding:'16px 12px'}},
+            h('div',{style:{fontSize:11,fontWeight:700,color:'var(--text2)',letterSpacing:'.08em',marginBottom:6}},'MENSUAL'),
+            h('div',{style:{fontSize:22,fontWeight:900,color:'var(--text)'}},'$99.990'),
+            h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:2}},'/ mes')
+          ),
+          h('div',{style:{background:'rgba(249,115,22,.08)',border:'1px solid rgba(249,115,22,.3)',borderRadius:10,padding:'16px 12px'}},
+            h('div',{style:{fontSize:11,fontWeight:700,color:'var(--orange)',letterSpacing:'.08em',marginBottom:6}},'ANUAL'),
+            h('div',{style:{fontSize:22,fontWeight:900,color:'var(--text)'}},'$1.000.000'),
+            h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:2}},'pago único')
+          )
+        ),
+        h('a',{href:'mailto:contacto@sistemaobra.app?subject=Contratar%20Sistema%20de%20Obra',
+          className:'btn-primary',style:{textDecoration:'none',padding:'14px',fontSize:14,borderRadius:10}},
+          'Contratar plan → contacto@sistemaobra.app'),
+        h('button',{onClick:function(){save({auth:null});},
+          style:{background:'none',border:'none',color:'var(--text3)',fontSize:12,cursor:'pointer',marginTop:-8}},
+          'Cerrar sesión')
+      )
+    );
   if(empresaInfo===false)
     return h(OnboardingEmpresa,{auth,onEmpresaCreada:function(emp){
       setEmpresaInfo({empresa_id:emp.id,empresas:{id:emp.id,nombre:emp.nombre},rol:'owner'});
