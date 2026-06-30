@@ -554,19 +554,6 @@ function Login({onLogin}){
           h('input',{style:inputStyle,type:'password',value:pw,placeholder:'••••••••',
             onChange:e=>setPw(e.target.value)})
         ),
-        h('div',null,h('label',{style:labelStyle},'Rol'),
-          h('select',{style:{...inputStyle,cursor:'pointer'},value:role,onChange:e=>setRole(e.target.value)},
-            h('option',{value:'Jefe Obra'},'Jefe Obra'),
-            h('option',{value:'Supervisor'},'Supervisor'),
-            h('option',{value:'Subcontrato'},'Subcontrato')
-          )
-        ),
-        isSupervisorRole&&h('div',null,h('label',{style:labelStyle},'Responsable (opcional)'),
-          h('select',{style:{...inputStyle,cursor:'pointer'},value:respKey,onChange:e=>setRespKey(e.target.value)},
-            h('option',{value:''},'— Todos —'),
-            RESP_ORDER.map(function(r){return h('option',{key:r,value:r},RESP_LABEL[r]||r);})
-          )
-        ),
         h('div',{style:{display:'flex',alignItems:'flex-start',gap:8,margin:'4px 0'}},
           h('input',{type:'checkbox',id:'chk-terminos',checked:aceptaTerminos,
             onChange:function(e){setAceptaTerminos(e.target.checked);},
