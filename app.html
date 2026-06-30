@@ -463,7 +463,7 @@ function Login({onLogin}){
   const[email,setEmail]=useState('');
   const[pw,setPw]=useState('');
   const[nombre,setNombre]=useState('');
-  const[role,setRole]=useState('Admin');
+  const[role,setRole]=useState('Jefe Obra');
   const[respKey,setRespKey]=useState('');
   const[err,setErr]=useState('');
   const[msg,setMsg]=useState('');
@@ -556,7 +556,6 @@ function Login({onLogin}){
         ),
         h('div',null,h('label',{style:labelStyle},'Rol'),
           h('select',{style:{...inputStyle,cursor:'pointer'},value:role,onChange:e=>setRole(e.target.value)},
-            h('option',{value:'Admin'},'Admin'),
             h('option',{value:'Jefe Obra'},'Jefe Obra'),
             h('option',{value:'Supervisor'},'Supervisor'),
             h('option',{value:'Subcontrato'},'Subcontrato')
